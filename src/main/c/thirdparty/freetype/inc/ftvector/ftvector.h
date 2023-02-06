@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2019-2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2019-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
 * @file
 * @brief Freetype vglite renderer
 * @author MicroEJ Developer Team
-* @version 3.0.2
+* @version 4.0.3
 */
 
 #ifndef FTVECTOR_H
@@ -22,8 +22,6 @@
 
 #define FT_PARAM_TAG_VGLITE_DESTINATION     FT_MAKE_TAG( 'd', 'e', 's', 't' )
 #define FT_PARAM_TAG_VGLITE_MATRIX          FT_MAKE_TAG( 'm', 'a', 't', 'r' )
-#define FT_PARAM_TAG_VGLITE_QUALITY         FT_MAKE_TAG( 'q', 'u', 'a', 'l' )
-#define FT_PARAM_TAG_VGLITE_FORMAT          FT_MAKE_TAG( 'f', 'o', 'r', 'm' )
 #define FT_PARAM_TAG_VGLITE_BLEND           FT_MAKE_TAG( 'b', 'l', 'e', 'n' )
 #define FT_PARAM_TAG_VGLITE_COLOR           FT_MAKE_TAG( 'c', 'o', 'l', 'o' )
 #define FT_PARAM_TAG_VGLITE_GRADIENT        FT_MAKE_TAG( 'g', 'r', 'a', 'd' )

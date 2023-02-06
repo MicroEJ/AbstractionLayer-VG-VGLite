@@ -1,20 +1,25 @@
 
 # Overview
+
 This component contains the Low-Level API (LLAPI) of MicroVG implementation over VGLITE.
 
 # Usage
-Add the following line to your `module.ivy` or your `ivy.xml`:
 
-    <dependency org="com.microej.clibrary.llimpl" name="microvg-vglite" rev="3.0.2"/>
+Add the following line to your `module.ivy`:
+
+    <dependency org="com.microej.clibrary.llimpl" name="microvg-vglite" rev="4.0.3"/>
 
 # Requirements
-N/A
+
+N/A.
 
 # Dependencies
-_All dependencies are retrieved transitively by Ivy resolver_.
+
+_All dependencies are retrieved transitively by MicroEJ Module Manager_.
 
 # Source
-N/A
+
+N/A.
 
 # Error Codes
 
@@ -25,6 +30,7 @@ The functions `LLVG_PAINTER_IMPL_drawPath` and `LLVG_PAINTER_IMPL_drawGradient` 
 * `-2`: The gradient cannot be processed (too many colors or VG-Lite library issue): the drawing is canceled.
 
 # Restrictions
+
 None.
 
 ---

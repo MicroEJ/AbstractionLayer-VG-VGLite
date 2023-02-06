@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroVG library low level API over VG-Lite.
  * @author MicroEJ Developer Team
- * @version 3.0.2
+ * @version 4.0.3
  */
 
 // -----------------------------------------------------------------------------
@@ -39,7 +39,6 @@
 #error "This implementation is only compatible with VG_FEATURE_GRADIENT_FULL"
 #endif
 
-#define ALPHA_SHIFT 24
 #define VGLITE_GRADIENT_SIZE 256
 
 // -----------------------------------------------------------------------------

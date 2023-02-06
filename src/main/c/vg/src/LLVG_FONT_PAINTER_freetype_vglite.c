@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2020-2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2020-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
 * @file
 * @brief MicroEJ MicroVG library low level API: implementation over Freetype and VG-Lite.
 * @author MicroEJ Developer Team
-* @version 3.0.2
+* @version 4.0.3
 */
 
 // -----------------------------------------------------------------------------
@@ -80,8 +80,10 @@ static inline float __get_scale(jfloat size, FT_Face face);
  * @param[in] matrix: the transformation matrix
  * @param[in] alpha: the opacity of the string (from 0 to 255)
  * @param[in] gradient: the gradient to apply
+ *
+ * @return the target according the graphics context
  */
-static void __set_renderer(MICROUI_GraphicsContext* gc, vg_lite_matrix_t* matrix, int color, vg_lite_linear_gradient_t* gradient, vg_lite_blend_t blend);
+static void* __set_renderer(MICROUI_GraphicsContext* gc, vg_lite_matrix_t* matrix, int color, vg_lite_linear_gradient_t* gradient, vg_lite_blend_t blend);
 
 /*
  * @brief Sets renderer color parameter.
@@ -247,31 +249,30 @@ static inline float __get_scale(jfloat size, FT_Face face){
 	return size / face->units_per_EM;
 }
 
-static void __set_renderer(MICROUI_GraphicsContext* gc, vg_lite_matrix_t* matrix, int color, vg_lite_linear_gradient_t* gradient, vg_lite_blend_t blend){
-	FT_Parameter vglite_params[7];
+static void* __set_renderer(MICROUI_GraphicsContext* gc, vg_lite_matrix_t* matrix, int color, vg_lite_linear_gradient_t* gradient, vg_lite_blend_t blend){
+	FT_Parameter vglite_params[5];
+
+	void* target = VG_DRAWER_configure_target(gc);
 
 	vglite_params[0].tag = FT_PARAM_TAG_VGLITE_DESTINATION;
-	vglite_params[0].data = VG_DRAWER_configure_target(gc);
+	vglite_params[0].data = target;
 
 	vglite_params[1].tag = FT_PARAM_TAG_VGLITE_MATRIX;
 	vglite_params[1].data = matrix;
 
-	vglite_params[2].tag = FT_PARAM_TAG_VGLITE_QUALITY;
-	vglite_params[2].data = (void *) VG_LITE_HIGH;
+	vglite_params[2].tag = FT_PARAM_TAG_VGLITE_BLEND;
+	vglite_params[2].data = (void *) blend;
 
-	vglite_params[3].tag = FT_PARAM_TAG_VGLITE_FORMAT;
-	vglite_params[3].data = (void *) VG_LITE_S16;
-
-	vglite_params[4].tag = FT_PARAM_TAG_VGLITE_BLEND;
-	vglite_params[4].data = (void *) blend;
-
-	vglite_params[5].tag = FT_PARAM_TAG_VGLITE_COLOR;
+	vglite_params[3].tag = FT_PARAM_TAG_VGLITE_COLOR;
 	// cppcheck-suppress [misra-c2012-11.6] pointer conversion to pass color
-	vglite_params[5].data = (void *) color;
+	vglite_params[3].data = (void *) color;
 
-	vglite_params[6].tag = FT_PARAM_TAG_VGLITE_GRADIENT;
-	vglite_params[6].data = (void *) gradient;
-	FT_Set_Renderer(library, renderer, 7, &vglite_params[0]);
+	vglite_params[4].tag = FT_PARAM_TAG_VGLITE_GRADIENT;
+	vglite_params[4].data = (void *) gradient;
+
+	FT_Set_Renderer(library, renderer, 5, &vglite_params[0]);
+
+	return target;
 }
 
 static void __set_color(int color) {
@@ -343,6 +344,7 @@ static int __render_glyph(FT_Face face, FT_UInt glyph_index, FT_Color color) {
 static void __draw_string(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jfloat x, jfloat y,  jfloat* vgGlobalMatrix, jint blend, int color, vg_lite_linear_gradient_t *gradient, jfloat letterSpacing, jfloat radius, jint direction ){
 	FT_Face face = (FT_Face) faceHandle;
 
+	DRAWING_Status drawing_status = DRAWING_DONE;
 	if (MICROVG_VGLITE_HELPER_enable_vg_lite_scissor(gc)){
 
 		// Select palette
@@ -380,7 +382,7 @@ static void __draw_string(MICROUI_GraphicsContext* gc, jchar* text, jint faceHan
 		vg_lite_matrix_t localGlyphMatrix;
 		jfloat* vglocalGlyphMatrix = MAP_VGLITE_MATRIX(&localGlyphMatrix);
 
-		__set_renderer(gc, &localGlyphMatrix, color, gradient, MICROVG_VGLITE_HELPER_get_blend(blend));
+		void* target = __set_renderer(gc, &localGlyphMatrix, color, gradient, MICROVG_VGLITE_HELPER_get_blend(blend));
 
 		// Layout variables
 		int glyph_index ; // current glyph index
@@ -391,6 +393,7 @@ static void __draw_string(MICROUI_GraphicsContext* gc, jchar* text, jint faceHan
 		int offset_x;
 		int offset_y;
 
+		bool drawing_running = false;
 		int length = (int)SNI_getArrayLength(text);
 		MICROVG_HELPER_layout_configure(faceHandle, text, length);
 
@@ -434,6 +437,8 @@ static void __draw_string(MICROUI_GraphicsContext* gc, jchar* text, jint faceHan
 				continue; // ignore errors
 			}
 
+			drawing_running = true;
+
 			// Compute advance to next glyph
 			advanceX += charWidth;
 			advanceX += (int)letterSpacingScaled;
@@ -443,11 +448,13 @@ static void __draw_string(MICROUI_GraphicsContext* gc, jchar* text, jint faceHan
 			previous_glyph_index = glyph_index;
 		}
 
-		DISPLAY_VGLITE_start_operation(true);
-
-		LLUI_DISPLAY_setDrawingStatus(DRAWING_RUNNING);
+		if (drawing_running) {
+			drawing_status = VG_DRAWER_post_operation(target, VG_LITE_SUCCESS, false);
+		}
 	}
 	// else empty clip, nothing to draw
+
+	LLUI_DISPLAY_setDrawingStatus(drawing_status);
 }
 #endif // defined VG_FEATURE_FONT && (VG_FEATURE_FONT == VG_FEATURE_FONT_FREETYPE_VECTOR)
 // -----------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -12,7 +12,7 @@
 * @file
 * @brief MicroVG library low level API
 * @author MicroEJ Developer Team
-* @version 3.0.2
+* @version 4.0.3
 */
 
 #if defined __cplusplus

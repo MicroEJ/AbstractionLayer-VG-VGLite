@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2019-2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2019-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
 * @file
 * @brief Freetype vglite renderer
 * @author MicroEJ Developer Team
-* @version 3.0.2
+* @version 4.0.3
 */
 
 #define FT_MAKE_OPTION_SINGLE_OBJECT
@@ -416,12 +416,18 @@ vglite_reset(   FT_Raster  raster,
 	_worker.vglite_matrix = NULL;
 	_worker.vglite_path_pool_size = 0;
 
-	(void)memset(&_worker.vglite_path, 0, sizeof(_worker.vglite_path));
-
-	_worker.vglite_path.bounding_box[0] = -4000; // Left
-	_worker.vglite_path.bounding_box[1] = -4000; // Top
-	_worker.vglite_path.bounding_box[2] = 4000; // Right
-	_worker.vglite_path.bounding_box[3] = 4000; // Bottom
+	vg_lite_init_path(
+			&_worker.vglite_path,
+			VG_LITE_S16,
+			VG_LITE_HIGH,
+			0,
+			NULL,
+			-4000, // Left
+			-4000, // Top
+			4000, // Right
+			4000 // Bottom
+	);
+	_worker.vglite_path.path_type = VG_LITE_DRAW_FILL_PATH;
 }
 
 
@@ -494,16 +500,6 @@ static FT_Error ft_vglite_set_mode(FT_Renderer render, FT_ULong  mode_tag, FT_Po
 		ret = FT_ERR(Ok);
 		break;
 	}
-	case FT_PARAM_TAG_VGLITE_QUALITY:{
-		_worker.vglite_path.quality = (vg_lite_quality_t) (uint32_t) data;
-		ret = FT_ERR(Ok);
-		break;
-	}
-	case FT_PARAM_TAG_VGLITE_FORMAT:{
-		_worker.vglite_path.format = (vg_lite_format_t) (uint32_t) data;
-		ret = FT_ERR(Ok);
-		break;
-	}
 	case FT_PARAM_TAG_VGLITE_BLEND:{
 		_worker.vg_lite_blend = (vg_lite_blend_t) (uint32_t) data;
 		ret = FT_ERR(Ok);
@@ -512,14 +508,14 @@ static FT_Error ft_vglite_set_mode(FT_Renderer render, FT_ULong  mode_tag, FT_Po
 	case FT_PARAM_TAG_VGLITE_COLOR:{
 		// convert the color only once, see FT_PARAM_TAG_VGLITE_DESTINATION
 		_worker.vg_lite_color = (uint32_t) data;
-		VG_DRAWER_update_color(_worker.vglite_dest, &_worker.vg_lite_color, _worker.vg_lite_blend);
+		VG_DRAWER_update_color(_worker.vglite_dest, &_worker.vg_lite_color);
 		ret = FT_ERR(Ok);
 		break;
 	}
 	case FT_PARAM_TAG_VGLITE_GRADIENT:{
 		_worker.vg_lite_gradient = data;
 		if (MICROVG_HELPER_NULL_GRADIENT != data) {
-			VG_DRAWER_update_gradient(_worker.vglite_dest, _worker.vg_lite_gradient, _worker.vg_lite_blend);
+			VG_DRAWER_update_gradient(_worker.vglite_dest, _worker.vg_lite_gradient);
 		}
 		ret = FT_ERR(Ok);
 		break;

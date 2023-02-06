@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -10,7 +10,7 @@
  * @brief MicroEJ MicroVG library low level API: implementation of buffered
  * vector images (BVI).
  * @author MicroEJ Developer Team
- * @version 3.0.2
+ * @version 4.0.3
  */
 
 // -----------------------------------------------------------------------------
@@ -68,6 +68,11 @@
  * @brief The vglite matrix can be mapped on a float array
  */
 #define MAP_TO_VGLITE_MATRIX(m) ((vg_lite_matrix_t*)(m))
+
+/*
+ * @brief Copy the gradient content but not the image that renders the gradient
+ */
+#define GRADIENT_COPY_SIZE (sizeof(vg_lite_linear_gradient_t) - sizeof(vg_lite_buffer_t))
 
 // --------------------------------------------------------------------------------
 // Foundation library's native functions names redefinition
@@ -215,11 +220,11 @@ static vg_lite_error_t _add_clear(
 		vg_lite_rectangle_t *rectangle,
 		vg_lite_color_t   color) ;
 
-static void __get_original_color(vg_lite_color_t* color, vg_lite_blend_t blend) ;
+static void __get_original_color(vg_lite_color_t* color) ;
 
-static void __get_original_gradient(vg_lite_linear_gradient_t* gradient, vg_lite_blend_t blend) ;
+static void __get_original_gradient(vg_lite_linear_gradient_t* gradient) ;
 
-static DRAWING_Status __post_drawing(vg_lite_error_t vg_lite_error) ;
+static DRAWING_Status __post_drawing(vg_lite_error_t vg_lite_error, bool wait_end_of_drawing) ;
 
 // -----------------------------------------------------------------------------
 // Global Variables
@@ -358,7 +363,7 @@ static void _free_vglite_path(vg_lite_path_t * path) {
  * @return the pointer to the stored gradient.
  */
 static vg_lite_linear_gradient_t* _store_vglite_gradient(vg_lite_linear_gradient_t * grad) {
-	return (vg_lite_linear_gradient_t*)_store_data(grad, sizeof(vg_lite_linear_gradient_t));
+	return (vg_lite_linear_gradient_t*)_store_data(grad, GRADIENT_COPY_SIZE);
 }
 static void _free_vglite_gradient(vg_lite_linear_gradient_t * grad)  {
 	_free_data(grad);
@@ -681,11 +686,12 @@ static void _apply_alpha_on_gradient(vg_lite_linear_gradient_t* gradient, uint32
 	// else: no need to apply alpha
 }
 
-static void _draw_in_pixel_buffer(MICROUI_GraphicsContext* gc, BVI_resource* source, vg_lite_matrix_t* matrix, uint32_t alpha) {
+static DRAWING_Status _draw_in_pixel_buffer(MICROUI_GraphicsContext* gc, BVI_resource* source, vg_lite_matrix_t* matrix, uint32_t alpha) {
 
-	VG_DRAWER_drawer_t* drawer = VGLITE_PATH_get_vglite_drawer(gc);
+	void* target = VG_DRAWER_configure_target(gc);
 	vglite_element_t* elem = (vglite_element_t*)source->vglite_element_first;
 	bool draw_gradient_flushed = true; // no drawing with gradient has been added yet
+	bool no_drawing = true;
 
 	while(NULL != elem->operation) {
 
@@ -698,56 +704,57 @@ static void _draw_in_pixel_buffer(MICROUI_GraphicsContext* gc, BVI_resource* sou
 			case VGLITE_DRAW_PATH: {
 				vglite_operation_path_t* op = get_operation_path(elem->operation);
 				vg_lite_color_t color = MICROVG_HELPER_apply_alpha(op->color, alpha);
-				drawer->update_color(&color, elem->blend);
-				VG_DRAWER_draw_path(drawer, op->path, op->fill_rule, &render_matrix, elem->blend, color);
+				VG_DRAWER_update_color(target, &color);
+				VG_DRAWER_draw_path(target, op->path, op->fill_rule, &render_matrix, elem->blend, color);
+				no_drawing = false;
 			}
 			break;
 			case VGLITE_DRAW_GRADIENT: {
 				vglite_operation_gradient_t* op = get_operation_gradient(elem->operation);
 
-				// copy the gradient content but not the image that renders the gradient
-				size_t copy_size = sizeof(vg_lite_linear_gradient_t) - sizeof(vg_lite_buffer_t);
-
 				// copy op's gradient in a local gradient to apply the opacity
 				vg_lite_linear_gradient_t local_gradient;
-				(void)memcpy(&local_gradient, op->gradient, copy_size);
+				(void)memcpy(&local_gradient, op->gradient, GRADIENT_COPY_SIZE);
 				_apply_alpha_on_gradient(&local_gradient, alpha);
 
-				if (0 != memcmp(&gradient, &local_gradient, copy_size)) {
+				if (0 != memcmp(&gradient, &local_gradient, GRADIENT_COPY_SIZE)) {
 					// not same gradient than previous: have to:
 
 					// 1- flush the previous gradient drawings because we will update the shared gradient's image
 					if (!draw_gradient_flushed) {
-						DISPLAY_VGLITE_start_operation(false);
+						(void)VG_DRAWER_post_operation(target, VG_LITE_SUCCESS, true);
 					}
 
 					// 2- copy the new gradient data in shared gradient
-					(void)memcpy(&gradient, &local_gradient, copy_size);
+					(void)memcpy(&gradient, &local_gradient, GRADIENT_COPY_SIZE);
 
 					// 3- update the shared gradient's image.
-					drawer->update_gradient(&gradient, elem->blend);
+					VG_DRAWER_update_gradient(target, &gradient);
 				}
 				// else: same gradient than previous: no need to update gradient's image again
 
 				// update the gradient's matrix
 				_apply_matrix(&(gradient.matrix), &(op->gradient->matrix), matrix);
 
-				VG_DRAWER_draw_gradient(drawer, op->path, op->fill_rule, &render_matrix, &gradient, elem->blend);
+				VG_DRAWER_draw_gradient(target, op->path, op->fill_rule, &render_matrix, &gradient, elem->blend);
 				draw_gradient_flushed = false;
+				no_drawing = false;
 			}
 			break;
 			case VGLITE_BLIT: {
 				vglite_operation_blit_t* op = get_operation_blit(elem->operation);
 				vg_lite_color_t color = MICROVG_HELPER_apply_alpha(op->color, alpha);
-				drawer->update_color(&color, elem->blend);
-				VG_DRAWER_blit(drawer, op->buffer, &render_matrix, elem->blend, color, op->filter);
+				VG_DRAWER_update_color(target, &color);
+				VG_DRAWER_blit(target, op->buffer, &render_matrix, elem->blend, color, op->filter);
+				no_drawing = false;
 			}
 			break;
 			case VGLITE_BLIT_RECT: {
 				vglite_operation_blit_t* op = get_operation_blit(elem->operation);
 				vg_lite_color_t color = MICROVG_HELPER_apply_alpha(op->color, alpha);
-				drawer->update_color(&color, elem->blend);
-				VG_DRAWER_blit_rect(drawer, op->buffer, op->blit_rect, &render_matrix, elem->blend, color, op->filter);
+				VG_DRAWER_update_color(target, &color);
+				VG_DRAWER_blit_rect(target, op->buffer, op->blit_rect, &render_matrix, elem->blend, color, op->filter);
+				no_drawing = false;
 			}
 			break;
 			default:
@@ -758,8 +765,17 @@ static void _draw_in_pixel_buffer(MICROUI_GraphicsContext* gc, BVI_resource* sou
 		elem = elem->next;
 	}
 
-	// flush all operations
-	DISPLAY_VGLITE_start_operation(true);
+	DRAWING_Status ret;
+	if (no_drawing) {
+		// nothing to do !
+		ret = DRAWING_DONE;
+	}
+	else {
+		// flush all operations
+		ret = VG_DRAWER_post_operation(target, VG_LITE_SUCCESS, false);
+	}
+
+	return ret;
 }
 
 static void _draw_in_command_buffer(BVI_resource* target, BVI_resource* source, vg_lite_matrix_t* matrix, uint32_t alpha) {
@@ -911,8 +927,7 @@ void LLVG_BVI_IMPL_draw(MICROUI_GraphicsContext* gc, MICROUI_GraphicsContext* so
 		BVI_resource* bvi = MAP_BVI(&source->image);
 
 		if (!IS_BVI(&gc->image)) {
-			_draw_in_pixel_buffer(gc, bvi, &vg_lite_matrix, alpha);
-			LLUI_DISPLAY_setDrawingStatus(DRAWING_RUNNING);
+			LLUI_DISPLAY_setDrawingStatus(_draw_in_pixel_buffer(gc, bvi, &vg_lite_matrix, alpha));
 		}
 		else {
 			_draw_in_command_buffer(MAP_BVI(&gc->image), bvi, &vg_lite_matrix, alpha);
@@ -1033,20 +1048,19 @@ static vg_lite_error_t _add_clear(
 	return ret;
 }
 
-static void __get_original_color(vg_lite_color_t* color, vg_lite_blend_t blend) {
+static void __get_original_color(vg_lite_color_t* color) {
 	(void)color;
-	(void)blend;
 	// nothing to do
 }
 
-static void __get_original_gradient(vg_lite_linear_gradient_t* gradient, vg_lite_blend_t blend) {
+static void __get_original_gradient(vg_lite_linear_gradient_t* gradient) {
 	(void)gradient;
-	(void)blend;
 	// nothing to do
 }
 
-static DRAWING_Status __post_drawing(vg_lite_error_t vg_lite_error) {
+static DRAWING_Status __post_drawing(vg_lite_error_t vg_lite_error, bool wait_end_of_drawing) {
 	(void)vg_lite_error;
+	(void)wait_end_of_drawing;
 	// TODO manage OOM
 	return DRAWING_DONE;
 }
