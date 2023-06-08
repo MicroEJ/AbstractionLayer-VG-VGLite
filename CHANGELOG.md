@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.1] - 2023-06-08
+
+### Fixed
+
+  - Fix performing drawings when the clip is disabled.
+
+## [5.0.0] - 2023-05-10
+
+### Added
+
+  - Add the compatibility with multiple Graphics Context output formats (UI Pack 13.5.0).
+  - Add the implementation of all MicroUI, Drawing and MicroVG drawings in MicroVG BufferedVectorImage (VG Pack 1.3.0).
+  - Add incident reporting with drawing log flags from UI Pack 13.5.0.
+
+### Changed
+
+  - Make the CCO compatible with UI pack 13.5.0 and higher.
+  - Make the CCO compatible with VG pack 1.3.0 and higher.
+  - Merge BufferedVectorImage and RAW formats.
+  - Simplify the gradient modification according the caller translation.
+
+### Removed
+
+  - Remove `LLVG_BVI_impl.c`: code is merged in `LLVG_RAW_impl.c`.
+  - Remove (move) some utility functions to CCO MicroUI-VGLite.
+  - Remove "draw String" native functions implementation (implemented in CCO MicroVG).
+
+### Migration Guide
+
+  - Follow the migration steps of CCO MicroVG 3.0.0
+  - [VEE Port configuration project] 
+  		- CCO MicroVG-VGLite 5.0.0.
+  - [BSP project] 
+  		- Delete the properties file `cco_microvg-vglite.properties`.
+  		- Delete the C files `LLVG_BVI_impl.c` and `LLVG_PATH_PAINTER_vglite.c` and remove them from the C project configuration.
+  		- In the C project configuration, include the new C file `ui_drawing_bvi.c`, ``vg_drawing_bvi.c`, `vg_drawing_vglite.c`.
+  		- In the C project configuration, set the define `LLUI_GC_SUPPORTED_FORMATS=2` to enable the BufferedVectorImage support.
+  - Build the VEE Port, the Freetype library (if case of dedicated project) and the BSP.
+
+## [4.0.4] - 2023-03-15
+
+### Fixed
+
+  - Fix the path to render during a "path data" animation:
+  	- when at least one animation is applied: the command buffer length and the path bounding box can be different than the original path, 
+  	- when no animation is applied: the original path must be drawn. 
+
 ## [4.0.3] - 2023-02-03
 
 ### Fixed

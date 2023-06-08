@@ -9,7 +9,7 @@
 * @file
 * @brief Freetype vglite renderer
 * @author MicroEJ Developer Team
-* @version 4.0.3
+* @version 5.0.1
 */
 
 #ifndef FTVECTOR_H
@@ -33,21 +33,21 @@
 //#define FT_VGLITE_LOG_OUTLINES
 
 #define VGLITE_CMD_MOVE_TO         2
-typedef struct path_move_to_16 {
+typedef struct {
     int16_t cmd;
     int16_t x;
     int16_t y;
 } path_move_to_16_t;
 
 #define VGLITE_CMD_LINE_TO         4
-typedef struct path_line_to_16 {
+typedef struct {
     int16_t cmd;
     int16_t x;
     int16_t y;
 } path_line_to_16_t;
 
 #define VGLITE_CMD_QUAD_TO         6
-typedef struct path_quad_to_16 {
+typedef struct {
     int16_t cmd;
     int16_t cx;
     int16_t cy;
@@ -56,7 +56,7 @@ typedef struct path_quad_to_16 {
 } path_quad_to_16_t;
 
 #define VGLITE_CMD_CUBIC_TO        8
-typedef struct path_cubic_to_16 {
+typedef struct {
     int16_t cmd;
     int16_t cx1;
     int16_t cy1;
@@ -67,7 +67,7 @@ typedef struct path_cubic_to_16 {
 } path_cubic_to_16_t;
 
 #define VGLITE_CMD_END             0
-typedef struct path_end_16 {
+typedef struct {
     int16_t cmd;
 } path_end_16_t;
 

@@ -9,7 +9,7 @@
  * @file
  * @brief MicroVG library low level API over VG-Lite.
  * @author MicroEJ Developer Team
- * @version 4.0.3
+ * @version 5.0.1
  */
 
 // -----------------------------------------------------------------------------
@@ -142,27 +142,6 @@ vg_lite_blend_t MICROVG_VGLITE_HELPER_get_blend(jint blend) {
 		break;
 	}
 	return ret;
-}
-
-// See the header file for the function documentation
-bool MICROVG_VGLITE_HELPER_enable_vg_lite_scissor(MICROUI_GraphicsContext* gc)
-{
-    int32_t width =  gc->clip_x2 - gc->clip_x1 + 1;
-    int32_t height =  gc->clip_y2 - gc->clip_y1 + 1;
-
-    bool ret;
-    if ((width > 0) && (height > 0))
-    {
-        vg_lite_enable_scissor();
-        vg_lite_set_scissor(gc->clip_x1, gc->clip_y1, width, height);
-        ret = true;
-    }
-    else {
-	    // drawing is useless
-    	LLUI_DISPLAY_setDrawingStatus(DRAWING_DONE);
-    	ret = false;
-    }
-    return ret;
 }
 
 // -----------------------------------------------------------------------------

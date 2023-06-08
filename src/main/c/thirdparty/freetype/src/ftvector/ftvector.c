@@ -9,7 +9,7 @@
 * @file
 * @brief Freetype vglite renderer
 * @author MicroEJ Developer Team
-* @version 4.0.3
+* @version 5.0.1
 */
 
 #define FT_MAKE_OPTION_SINGLE_OBJECT
@@ -47,6 +47,7 @@
 #include "display_vglite.h"
 #include "vglite_path.h"
 #include "microvg_helper.h"
+#include "vg_drawing_vglite.h"
 
 /*
  * @brief Logs an init gpu start event
@@ -91,7 +92,7 @@
 typedef struct  vglite_TWorker_ {
 	FT_Outline  outline;
 
-	void* vglite_dest;
+	VG_DRAWING_VGLITE_draw_glyph_t vglite_dest;
 	vg_lite_matrix_t* vglite_matrix;
 	vg_lite_path_t vglite_path;
 	uint32_t vglite_path_pool_size;
@@ -346,28 +347,17 @@ vglite_convert_glyph( void )
 			FT_TRACE7(("horiBearingX: %d\n", _worker.metrics->horiBearingX));
 			FT_TRACE7(("horiBearingY: %d\n", _worker.metrics->horiBearingY));
 
-			// FIXME the commented code break characters alignment on the baseline.
-			// I guess they were added to fix wrong positions.
-			//    int offX = _worker.metrics->horiBearingX;
-			//    int offY = _worker.metrics->horiBearingY - _worker.metrics->height;
-
 			// Get fill rule from outline
 			vg_lite_fill_t vg_lite_fill_rule = (_worker.outline.flags & FT_OUTLINE_EVEN_ODD_FILL) ? VG_LITE_FILL_EVEN_ODD : VG_LITE_FILL_NON_ZERO;
 
-			//    vg_lite_translate(offX, offY, _worker.vglite_matrix);
-			if(_worker.vg_lite_gradient == MICROVG_HELPER_NULL_GRADIENT){
-				FT_VGLITE_TRACE_INIT_GPU_START(DRAW);
-				void* target = _worker.vglite_dest;
-				VG_DRAWER_draw_path(target, &_worker.vglite_path, vg_lite_fill_rule, _worker.vglite_matrix, _worker.vg_lite_blend, _worker.vg_lite_color);
-				FT_VGLITE_TRACE_INIT_GPU_END();
+			FT_VGLITE_TRACE_INIT_GPU_START(DRAW);
+			VG_DRAWING_VGLITE_draw_glyph_t drawer = (VG_DRAWING_VGLITE_draw_glyph_t)(_worker.vglite_dest);
+			jint llvg_error = (*drawer)(&_worker.vglite_path, vg_lite_fill_rule, _worker.vglite_matrix, _worker.vg_lite_blend, _worker.vg_lite_color, _worker.vg_lite_gradient);
+			FT_VGLITE_TRACE_INIT_GPU_END();
+
+			if (LLVG_SUCCESS != llvg_error) {
+				error = (LLVG_OUT_OF_MEMORY == llvg_error) ? FT_ERR( Out_Of_Memory ) : FT_ERR( Cannot_Render_Glyph ) ;
 			}
-			else {
-				FT_VGLITE_TRACE_INIT_GPU_START(DRAW_GRAD);
-				void* target = _worker.vglite_dest;
-				VG_DRAWER_draw_gradient(target, &_worker.vglite_path, vg_lite_fill_rule, _worker.vglite_matrix, _worker.vg_lite_gradient, _worker.vg_lite_blend);
-				FT_VGLITE_TRACE_INIT_GPU_END();
-			}
-			//    vg_lite_translate(0, offY, _worker.vglite_matrix);
 		}
 	}
 
@@ -491,7 +481,7 @@ static FT_Error ft_vglite_set_mode(FT_Renderer render, FT_ULong  mode_tag, FT_Po
 
 	switch (mode_tag){
 	case FT_PARAM_TAG_VGLITE_DESTINATION:{
-		_worker.vglite_dest = data;
+		_worker.vglite_dest = (VG_DRAWING_VGLITE_draw_glyph_t)data;
 		ret = FT_ERR(Ok);
 		break;
 	}
@@ -508,15 +498,11 @@ static FT_Error ft_vglite_set_mode(FT_Renderer render, FT_ULong  mode_tag, FT_Po
 	case FT_PARAM_TAG_VGLITE_COLOR:{
 		// convert the color only once, see FT_PARAM_TAG_VGLITE_DESTINATION
 		_worker.vg_lite_color = (uint32_t) data;
-		VG_DRAWER_update_color(_worker.vglite_dest, &_worker.vg_lite_color);
 		ret = FT_ERR(Ok);
 		break;
 	}
 	case FT_PARAM_TAG_VGLITE_GRADIENT:{
 		_worker.vg_lite_gradient = data;
-		if (MICROVG_HELPER_NULL_GRADIENT != data) {
-			VG_DRAWER_update_gradient(_worker.vglite_dest, _worker.vg_lite_gradient);
-		}
 		ret = FT_ERR(Ok);
 		break;
 	}
@@ -548,7 +534,7 @@ ft_vglite_transform(    FT_Renderer       render,
 		if (NULL != delta ){
 			FT_Outline_Translate( &slot->outline, delta->x, delta->y );
 		}
-		error = FT_Err_Ok;
+		error = FT_ERR( Ok );
 	}
 	else {
 		error = FT_THROW( Invalid_Argument );
