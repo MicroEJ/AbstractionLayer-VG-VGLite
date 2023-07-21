@@ -18,7 +18,7 @@
  * drawing function is specified by ui_drawing_bvi.c to target BufferedVectorImage buffer.
  *
  * @author MicroEJ Developer Team
- * @version 5.0.1
+ * @version 6.0.0
  * @see ui_drawing_vglite.c
  */
 
@@ -34,8 +34,8 @@
 #include "ui_drawing_bvi.h"
 #include "bvi_vglite.h"
 #include "ui_drawing_stub.h"
-#include "drawing_vglite.h"
-#include "vglite_path.h"
+#include "ui_drawing_vglite_process.h"
+#include "ui_drawing_vglite_path.h"
 #include "microvg_vglite_helper.h"
 
 // --------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ static DRAWING_Status _add_clear(MICROUI_GraphicsContext* gc, vg_lite_rectangle_
 	vglite_path_rectangle_t rectangle_path;
 	shape_vg_path.path = &rectangle_path;
 	shape_vg_path.path_length = sizeof(rectangle_path);
-	int path_offset = VGLITE_PATH_compute_rectangle(&shape_vg_path, 0, rect->x, rect->y, rect->width, rect->height, true);
+	int path_offset = UI_DRAWING_VGLITE_PATH_compute_rectangle(&shape_vg_path, 0, rect->x, rect->y, rect->width, rect->height, true);
 
 	if (0 < path_offset) {
 		vg_lite_matrix_t matrix;
@@ -92,82 +92,82 @@ void UI_DRAWING_BVI_initializeNewImage(MICROUI_Image* image) {
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawLine(MICROUI_GraphicsContext* gc, jint startX, jint startY, jint endX, jint endY){
-	return DRAWING_VGLITE_drawLine(&_add_path, gc, startX, startY, endX, endY);
+	return UI_DRAWING_VGLITE_PROCESS_drawLine(&_add_path, gc, startX, startY, endX, endY);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawHorizontalLine(MICROUI_GraphicsContext* gc, jint x1, jint x2, jint y){
-	return DRAWING_VGLITE_drawHorizontalLine(&_add_path, gc, x1, x2, y);
+	return UI_DRAWING_VGLITE_PROCESS_drawHorizontalLine(&_add_path, gc, x1, x2, y);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawVerticalLine(MICROUI_GraphicsContext* gc, jint x, jint y1, jint y2){
-	return DRAWING_VGLITE_drawVerticalLine(&_add_path, gc, x, y1, y2);
+	return UI_DRAWING_VGLITE_PROCESS_drawVerticalLine(&_add_path, gc, x, y1, y2);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_fillRectangle(MICROUI_GraphicsContext* gc, jint x1, jint y1, jint x2, jint y2){
-	return DRAWING_VGLITE_fillRectangle(&_add_clear, gc, x1, y1, x2, y2);
+	return UI_DRAWING_VGLITE_PROCESS_fillRectangle(&_add_clear, gc, x1, y1, x2, y2);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawRoundedRectangle(MICROUI_GraphicsContext* gc, jint x, jint y, jint width, jint height, jint cornerEllipseWidth, jint cornerEllipseHeight){
-	return DRAWING_VGLITE_drawRoundedRectangle(&_add_path, gc, x, y, width, height, cornerEllipseWidth, cornerEllipseHeight);
+	return UI_DRAWING_VGLITE_PROCESS_drawRoundedRectangle(&_add_path, gc, x, y, width, height, cornerEllipseWidth, cornerEllipseHeight);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_fillRoundedRectangle(MICROUI_GraphicsContext* gc, jint x, jint y, jint width, jint height, jint cornerEllipseWidth, jint cornerEllipseHeight){
-	return DRAWING_VGLITE_fillRoundedRectangle(&_add_path, gc, x, y, width, height, cornerEllipseWidth, cornerEllipseHeight);
+	return UI_DRAWING_VGLITE_PROCESS_fillRoundedRectangle(&_add_path, gc, x, y, width, height, cornerEllipseWidth, cornerEllipseHeight);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawCircleArc(MICROUI_GraphicsContext* gc, jint x, jint y, jint diameter, jfloat startAngle, jfloat arcAngle){
-	return DRAWING_VGLITE_drawCircleArc(&_add_path, gc, x, y, diameter, startAngle, arcAngle);
+	return UI_DRAWING_VGLITE_PROCESS_drawCircleArc(&_add_path, gc, x, y, diameter, startAngle, arcAngle);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_fillCircleArc(MICROUI_GraphicsContext* gc, jint x, jint y, jint diameter, jfloat startAngle, jfloat arcAngle){
-	return DRAWING_VGLITE_fillCircleArc(&_add_path, gc, x, y, diameter, startAngle, arcAngle);
+	return UI_DRAWING_VGLITE_PROCESS_fillCircleArc(&_add_path, gc, x, y, diameter, startAngle, arcAngle);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawEllipseArc(MICROUI_GraphicsContext* gc, jint x, jint y, jint width, jint height, jfloat startAngle, jfloat arcAngle){
-	return DRAWING_VGLITE_drawEllipseArc(&_add_path, gc, x, y, width, height, startAngle, arcAngle);
+	return UI_DRAWING_VGLITE_PROCESS_drawEllipseArc(&_add_path, gc, x, y, width, height, startAngle, arcAngle);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_fillEllipseArc(MICROUI_GraphicsContext* gc, jint x, jint y, jint width, jint height, jfloat startAngle, jfloat arcAngle){
-	return DRAWING_VGLITE_fillEllipseArc(&_add_path, gc, x, y, width, height, startAngle, arcAngle);
+	return UI_DRAWING_VGLITE_PROCESS_fillEllipseArc(&_add_path, gc, x, y, width, height, startAngle, arcAngle);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawCircle(MICROUI_GraphicsContext* gc, jint x, jint y, jint diameter){
-	return DRAWING_VGLITE_drawCircle(&_add_path, gc, x, y, diameter);
+	return UI_DRAWING_VGLITE_PROCESS_drawCircle(&_add_path, gc, x, y, diameter);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_fillCircle(MICROUI_GraphicsContext* gc, jint x, jint y, jint diameter){
-	return DRAWING_VGLITE_fillCircle(&_add_path, gc, x, y, diameter);
+	return UI_DRAWING_VGLITE_PROCESS_fillCircle(&_add_path, gc, x, y, diameter);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawEllipse(MICROUI_GraphicsContext* gc, jint x, jint y, jint width, jint height){
-	return DRAWING_VGLITE_drawEllipse(&_add_path, gc, x, y, width, height);
+	return UI_DRAWING_VGLITE_PROCESS_drawEllipse(&_add_path, gc, x, y, width, height);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_fillEllipse(MICROUI_GraphicsContext* gc, jint x, jint y, jint width, jint height){
-	return DRAWING_VGLITE_fillEllipse(&_add_path, gc, x, y, width, height);
+	return UI_DRAWING_VGLITE_PROCESS_fillEllipse(&_add_path, gc, x, y, width, height);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawThickFadedPoint(MICROUI_GraphicsContext* gc, jint x, jint y, jint thickness, jint fade){
 	DRAWING_Status status;
-	if (!DRAWING_VGLITE_IS_COMPATIBLE_FADE(fade)) {
+	if (!UI_DRAWING_VGLITE_IS_COMPATIBLE_FADE(fade)) {
 		status = UI_DRAWING_STUB_drawThickFadedPoint(gc, x, y, thickness, fade);
 	}
 	else {
-		status = DRAWING_VGLITE_drawThickFadedPoint(&_add_path, gc, x, y, DRAWING_VGLITE_GET_THICKNESS(thickness, fade));
+		status = UI_DRAWING_VGLITE_PROCESS_drawThickFadedPoint(&_add_path, gc, x, y, UI_DRAWING_VGLITE_GET_THICKNESS(thickness, fade));
 	}
 	return status;
 }
@@ -175,11 +175,11 @@ DRAWING_Status UI_DRAWING_BVI_drawThickFadedPoint(MICROUI_GraphicsContext* gc, j
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawThickFadedLine(MICROUI_GraphicsContext* gc, jint startX, jint startY, jint endX, jint endY, jint thickness, jint fade, DRAWING_Cap startCap, DRAWING_Cap endCap){
 	DRAWING_Status status;
-	if (!DRAWING_VGLITE_IS_COMPATIBLE_FADE(fade)) {
+	if (!UI_DRAWING_VGLITE_IS_COMPATIBLE_FADE(fade)) {
 		status = UI_DRAWING_STUB_drawThickFadedLine(gc, startX, startY, endX, endY, thickness, fade, startCap, endCap);
 	}
 	else {
-		status = DRAWING_VGLITE_drawThickFadedLine(&_add_path, gc, startX, startY, endX, endY, DRAWING_VGLITE_GET_THICKNESS(thickness, fade), startCap, endCap);
+		status = UI_DRAWING_VGLITE_PROCESS_drawThickFadedLine(&_add_path, gc, startX, startY, endX, endY, UI_DRAWING_VGLITE_GET_THICKNESS(thickness, fade), startCap, endCap);
 	}
 
 	return status;
@@ -188,11 +188,11 @@ DRAWING_Status UI_DRAWING_BVI_drawThickFadedLine(MICROUI_GraphicsContext* gc, ji
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawThickFadedCircle(MICROUI_GraphicsContext* gc, jint x, jint y, jint diameter, jint thickness, jint fade){
 	DRAWING_Status status;
-	if (!DRAWING_VGLITE_IS_COMPATIBLE_FADE(fade)) {
+	if (!UI_DRAWING_VGLITE_IS_COMPATIBLE_FADE(fade)) {
 		status = UI_DRAWING_STUB_drawThickFadedCircle(gc, x, y, diameter, thickness, fade);
 	}
 	else {
-		status = DRAWING_VGLITE_drawThickFadedCircle(&_add_path, gc, x, y, diameter, DRAWING_VGLITE_GET_THICKNESS(thickness, fade));
+		status = UI_DRAWING_VGLITE_PROCESS_drawThickFadedCircle(&_add_path, gc, x, y, diameter, UI_DRAWING_VGLITE_GET_THICKNESS(thickness, fade));
 	}
 
 	return status;
@@ -201,11 +201,11 @@ DRAWING_Status UI_DRAWING_BVI_drawThickFadedCircle(MICROUI_GraphicsContext* gc, 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawThickFadedCircleArc(MICROUI_GraphicsContext* gc, jint x, jint y, jint diameter, jfloat startAngle, jfloat arcAngle, jint thickness, jint fade, DRAWING_Cap start, DRAWING_Cap end){
 	DRAWING_Status status;
-	if (!DRAWING_VGLITE_IS_COMPATIBLE_FADE(fade)) {
+	if (!UI_DRAWING_VGLITE_IS_COMPATIBLE_FADE(fade)) {
 		status = UI_DRAWING_STUB_drawThickFadedCircleArc(gc, x, y, diameter, startAngle, arcAngle, thickness, fade, start, end);
 	}
 	else {
-		status = DRAWING_VGLITE_drawThickFadedCircleArc(&_add_path, gc, x, y, diameter, startAngle, arcAngle, DRAWING_VGLITE_GET_THICKNESS(thickness, fade), start, end);
+		status = UI_DRAWING_VGLITE_PROCESS_drawThickFadedCircleArc(&_add_path, gc, x, y, diameter, startAngle, arcAngle, UI_DRAWING_VGLITE_GET_THICKNESS(thickness, fade), start, end);
 	}
 
 	return status;
@@ -214,11 +214,11 @@ DRAWING_Status UI_DRAWING_BVI_drawThickFadedCircleArc(MICROUI_GraphicsContext* g
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawThickFadedEllipse(MICROUI_GraphicsContext* gc, jint x, jint y, jint width, jint height, jint thickness, jint fade){
 	DRAWING_Status status;
-	if (!DRAWING_VGLITE_IS_COMPATIBLE_FADE(fade)) {
+	if (!UI_DRAWING_VGLITE_IS_COMPATIBLE_FADE(fade)) {
 		status = UI_DRAWING_STUB_drawThickFadedEllipse(gc, x, y, width, height, thickness, fade);
 	}
 	else {
-		status = DRAWING_VGLITE_drawThickFadedEllipse(&_add_path, gc, x, y, width, height, DRAWING_VGLITE_GET_THICKNESS(thickness, fade));
+		status = UI_DRAWING_VGLITE_PROCESS_drawThickFadedEllipse(&_add_path, gc, x, y, width, height, UI_DRAWING_VGLITE_GET_THICKNESS(thickness, fade));
 	}
 
 	return status;
@@ -226,22 +226,22 @@ DRAWING_Status UI_DRAWING_BVI_drawThickFadedEllipse(MICROUI_GraphicsContext* gc,
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawThickLine(MICROUI_GraphicsContext* gc, jint startX, jint startY, jint endX, jint endY, jint thickness){
-	return DRAWING_VGLITE_drawThickLine(&_add_path, gc, startX, startY, endX, endY, thickness);
+	return UI_DRAWING_VGLITE_PROCESS_drawThickLine(&_add_path, gc, startX, startY, endX, endY, thickness);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawThickCircle(MICROUI_GraphicsContext* gc, jint x, jint y, jint diameter, jint thickness){
-	return DRAWING_VGLITE_drawThickCircle(&_add_path, gc, x, y, diameter, thickness);
+	return UI_DRAWING_VGLITE_PROCESS_drawThickCircle(&_add_path, gc, x, y, diameter, thickness);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawThickEllipse(MICROUI_GraphicsContext* gc, jint x, jint y, jint width, jint height, jint thickness){
-	return DRAWING_VGLITE_drawThickEllipse(&_add_path, gc, x, y, width, height, thickness);
+	return UI_DRAWING_VGLITE_PROCESS_drawThickEllipse(&_add_path, gc, x, y, width, height, thickness);
 }
 
 // See the header file for the function documentation
 DRAWING_Status UI_DRAWING_BVI_drawThickCircleArc(MICROUI_GraphicsContext* gc, jint x, jint y, jint diameter, jfloat startAngle, jfloat arcAngle, jint thickness){
-	return DRAWING_VGLITE_drawThickCircleArc(&_add_path, gc, x, y, diameter, startAngle, arcAngle, thickness);
+	return UI_DRAWING_VGLITE_PROCESS_drawThickCircleArc(&_add_path, gc, x, y, diameter, startAngle, arcAngle, thickness);
 }
 
 // --------------------------------------------------------------------------------

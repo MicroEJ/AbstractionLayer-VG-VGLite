@@ -17,7 +17,7 @@
  * drawing function is specified by vg_drawing_bvi.c to target BufferedVectorImage buffer.
  *
  * @author MicroEJ Developer Team
- * @version 5.0.1
+ * @version 6.0.0
  * @see vg_drawing_vglite.c
  * @see ui_drawing_bvi.c
  */
@@ -31,7 +31,7 @@
 
 #include "vg_drawing_bvi.h"
 #include "bvi_vglite.h"
-#include "display_vglite.h"
+#include "ui_vglite.h"
 #include "vg_drawing_vglite.h"
 #include "microvg_helper.h"
 #include "microvg_vglite_helper.h"
@@ -63,7 +63,7 @@ static jint _add_glyph_gradient(vg_lite_path_t * path, vg_lite_fill_t fill_rule,
 
 static DRAWING_Status _draw_string_on_circle(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size, jfloat x, jfloat y, jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jfloat radius, jint direction){
 
-	if (DISPLAY_VGLITE_enable_vg_lite_scissor(gc)) {
+	if (UI_VGLITE_enable_vg_lite_scissor(gc)) {
 
 		// prepare matrix
 		vg_lite_matrix_t vglite_matrix;
@@ -86,7 +86,7 @@ static DRAWING_Status _draw_string_on_circle(MICROUI_GraphicsContext* gc, jchar*
 static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size, jfloat x, jfloat y, jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jfloat radius, jint direction, jint *gradientData, jfloat *gradientMatrix){
 	DRAWING_Status ret = DRAWING_DONE;
 
-	if (DISPLAY_VGLITE_enable_vg_lite_scissor(gc)) {
+	if (UI_VGLITE_enable_vg_lite_scissor(gc)) {
 
 		// prepare matrix
 		vg_lite_matrix_t vglite_matrix;
@@ -108,7 +108,7 @@ static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext* g
 			VG_DRAWING_VGLITE_clear_gradient(&vglite_gradient);
 		}
 		else {
-			ret = DRAWING_VGLITE_report_vglite_error(gc, vglite_error);
+			ret = UI_VGLITE_report_vglite_error(gc, vglite_error);
 		}
 	}
 	// else no error: the drawing is just "not performed"
@@ -124,7 +124,7 @@ static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext* g
 // See the header file for the function documentation
 DRAWING_Status VG_DRAWING_BVI_drawPath(MICROUI_GraphicsContext* gc, jbyte* pathData, jint x, jint y, jfloat* matrix, jint fillRule, jint blend, jint color) {
 
-	if (DISPLAY_VGLITE_enable_vg_lite_scissor(gc)) {
+	if (UI_VGLITE_enable_vg_lite_scissor(gc)) {
 
 		// prepare path
 		vg_lite_path_t* vglite_path = VG_DRAWING_VGLITE_to_vglite_path((MICROVG_PATH_HEADER_t*)pathData);
@@ -147,7 +147,7 @@ DRAWING_Status VG_DRAWING_BVI_drawPath(MICROUI_GraphicsContext* gc, jbyte* pathD
 // See the header file for the function documentation
 DRAWING_Status VG_DRAWING_BVI_drawGradient(MICROUI_GraphicsContext* gc, jbyte* pathData, jint x, jint y, jfloat* matrix, jint fillRule, jint alpha, jint blend, jint* gradientData, jfloat* gradientMatrix){
 
-	if (DISPLAY_VGLITE_enable_vg_lite_scissor(gc)) {
+	if (UI_VGLITE_enable_vg_lite_scissor(gc)) {
 
 		// prepare path
 		vg_lite_path_t* vglite_path = VG_DRAWING_VGLITE_to_vglite_path((MICROVG_PATH_HEADER_t*)pathData);
@@ -172,7 +172,7 @@ DRAWING_Status VG_DRAWING_BVI_drawGradient(MICROUI_GraphicsContext* gc, jbyte* p
 			VG_DRAWING_VGLITE_clear_gradient(&vglite_gradient);
 		}
 		else {
-			DRAWING_VGLITE_report_vglite_error(gc, vglite_error);
+			UI_VGLITE_report_vglite_error(gc, vglite_error);
 		}
 
 	}
@@ -203,7 +203,7 @@ DRAWING_Status VG_DRAWING_BVI_drawImage(MICROUI_GraphicsContext* gc, void* image
 	float height;
 	VG_DRAWING_get_image_size(image, &width, &height);
 
-	if (DISPLAY_VGLITE_enable_vg_lite_scissor_area(gc, width, height, matrix)) {
+	if (UI_VGLITE_enable_vg_lite_scissor_area(gc, width, height, matrix)) {
 		*errno = BVI_VGLITE_add_draw_image(MAP_BVI_ON_GC(gc), image, matrix, alpha, elapsed, color_matrix);
 		MICROVG_VGLITE_handle_error(gc, *errno);
 	}

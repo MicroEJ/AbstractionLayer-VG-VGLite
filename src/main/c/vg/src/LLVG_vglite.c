@@ -9,7 +9,7 @@
  * @file
  * @brief MicroVG library low level API over VG-Lite.
  * @author MicroEJ Developer Team
- * @version 5.0.1
+ * @version 6.0.0
  */
 
 // -----------------------------------------------------------------------------
@@ -28,7 +28,6 @@
 #include "microvg_vglite_helper.h"
 #include "vg_lite.h"
 #include "color.h"
-#include "display_vglite.h"
 #include "bsp_util.h"
 
 // -----------------------------------------------------------------------------
@@ -133,6 +132,12 @@ vg_lite_blend_t MICROVG_VGLITE_HELPER_get_blend(jint blend) {
 		break;
 	case LLVG_BLEND_DST_IN:
 		ret = VG_LITE_BLEND_DST_IN;
+		break;
+	case LLVG_BLEND_DST_OUT:
+		ret = VG_LITE_BLEND_SUBTRACT;
+		break;
+	case LLVG_BLEND_PLUS:
+		ret = VG_LITE_BLEND_ADDITIVE;
 		break;
 	case LLVG_BLEND_SCREEN:
 		ret = VG_LITE_BLEND_SCREEN;

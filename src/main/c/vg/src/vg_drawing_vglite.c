@@ -17,7 +17,7 @@ Use of this source code is governed by a BSD-style license that can be found wit
  * MicroUI BufferedImage).
  *
  * @author MicroEJ Developer Team
- * @version 5.0.1
+ * @version 6.0.0
  */
 
 // -----------------------------------------------------------------------------
@@ -34,7 +34,7 @@ Use of this source code is governed by a BSD-style license that can be found wit
 #include "microvg_helper.h"
 #include "microvg_vglite_helper.h"
 #include "color.h"
-#include "display_vglite.h"
+#include "ui_vglite.h"
 
 // -----------------------------------------------------------------------------
 // Defines
@@ -72,7 +72,9 @@ static inline DRAWING_Status _post_operation(MICROUI_GraphicsContext* gc, jint e
 		ret = MICROVG_VGLITE_report_error(gc, error);
 	}
 	else if (rendered) {
-		ret = DRAWING_VGLITE_start_operation();
+		// start GPU operation and do not wait for it to end
+		UI_VGLITE_start_operation(true);
+		ret = DRAWING_RUNNING;
 	}
 	else {
 		// else: nothing has been drawn (empty drawing, out of clip, etc.): not an error
@@ -83,7 +85,7 @@ static inline DRAWING_Status _post_operation(MICROUI_GraphicsContext* gc, jint e
 
 inline static void _update_color(vg_lite_color_t* color) {
 	// premultiply color
-	*color = DISPLAY_VGLITE_premultiply(*color);
+	*color = UI_VGLITE_premultiply(*color);
 }
 
 static void _update_gradient(vg_lite_linear_gradient_t* gradient) {
@@ -92,7 +94,7 @@ static void _update_gradient(vg_lite_linear_gradient_t* gradient) {
 	uint32_t count = gradient->count;
 	uint32_t* colors = gradient->colors;
 	for (uint32_t i = 0; i < count; i++) {
-		colors[i] = DISPLAY_VGLITE_premultiply(colors[i]);
+		colors[i] = UI_VGLITE_premultiply(colors[i]);
 	}
 
 	// update the VG-Lite internal image that represents the gradient
@@ -129,7 +131,7 @@ static jint _draw_image_element(vg_lite_path_t * path, vg_lite_fill_t fill_rule,
 
 			// 1- flush the previous gradient drawings because we will update the shared gradient's image
 			if (!draw_gradient_flushed) {
-				DISPLAY_VGLITE_start_operation(false);
+				UI_VGLITE_start_operation(false);
 			}
 
 			// 2- update the shared gradient's image.
@@ -158,7 +160,7 @@ static jint _draw_glyph_gradient(vg_lite_path_t * path, vg_lite_fill_t fill_rule
 static DRAWING_Status _draw_string_on_circle(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jfloat x, jfloat y, jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jfloat radius, jint direction){
 	DRAWING_Status ret = DRAWING_DONE;
 
-	if (DISPLAY_VGLITE_enable_vg_lite_scissor(gc)) {
+	if (UI_VGLITE_enable_vg_lite_scissor(gc)) {
 
 		// prepare matrix
 		vg_lite_matrix_t vglite_matrix;
@@ -170,7 +172,7 @@ static DRAWING_Status _draw_string_on_circle(MICROUI_GraphicsContext* gc, jchar*
 
 		// draw
 		bool rendered;
-		render_buffer = DISPLAY_VGLITE_configure_destination(gc);
+		render_buffer = UI_VGLITE_configure_destination(gc);
 		jint error = VG_DRAWING_VGLITE_draw_string(&_draw_glyph_color, text, faceHandle, size, &vglite_matrix, blend, vglite_color, MICROVG_HELPER_NULL_GRADIENT, letterSpacing, radius, direction, &rendered);
 		ret = _post_operation(gc, error, rendered);
 	}
@@ -182,7 +184,7 @@ static DRAWING_Status _draw_string_on_circle(MICROUI_GraphicsContext* gc, jchar*
 static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jfloat x, jfloat y, jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jfloat radius, jint direction, jint *gradientData, jfloat *gradientMatrix){
 	DRAWING_Status ret = DRAWING_DONE;
 
-	if (DISPLAY_VGLITE_enable_vg_lite_scissor(gc)) {
+	if (UI_VGLITE_enable_vg_lite_scissor(gc)) {
 
 		// prepare matrix
 		vg_lite_matrix_t vglite_matrix;
@@ -199,14 +201,14 @@ static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext* g
 
 			// draw
 			bool rendered;
-			render_buffer = DISPLAY_VGLITE_configure_destination(gc);
+			render_buffer = UI_VGLITE_configure_destination(gc);
 			jint error = VG_DRAWING_VGLITE_draw_string(&_draw_glyph_gradient, text, faceHandle, size, &vglite_matrix, blend, 0, &vglite_gradient, letterSpacing, radius, direction, &rendered);
 			ret = _post_operation(gc, error, rendered);
 
 			VG_DRAWING_VGLITE_clear_gradient(&vglite_gradient);
 		}
 		else {
-			ret = DRAWING_VGLITE_report_vglite_error(gc, vglite_error);
+			ret = UI_VGLITE_report_vglite_error(gc, vglite_error);
 		}
 	}
 	// else no error: the drawing is just "not performed"
@@ -359,7 +361,7 @@ vg_lite_path_t* VG_DRAWING_VGLITE_to_vglite_path(MICROVG_PATH_HEADER_t* p){
 DRAWING_Status VG_DRAWING_VGLITE_drawPath(MICROUI_GraphicsContext* gc, jbyte* pathData, jint x, jint y, jfloat* matrix, jint fillRule, jint blend, jint color) {
 	DRAWING_Status ret = DRAWING_DONE;
 
-	if (DISPLAY_VGLITE_enable_vg_lite_scissor(gc)) {
+	if (UI_VGLITE_enable_vg_lite_scissor(gc)) {
 
 		// prepare path
 		vg_lite_path_t* vglite_path = VG_DRAWING_VGLITE_to_vglite_path((MICROVG_PATH_HEADER_t*)pathData);
@@ -375,11 +377,11 @@ DRAWING_Status VG_DRAWING_VGLITE_drawPath(MICROUI_GraphicsContext* gc, jbyte* pa
 		_update_color(&vglite_color);
 
 		// draw
-		render_buffer = DISPLAY_VGLITE_configure_destination(gc);
+		render_buffer = UI_VGLITE_configure_destination(gc);
 		vg_lite_error_t vglite_error = vg_lite_draw(render_buffer, vglite_path, vglite_fill, &vglite_matrix, vglite_blend, vglite_color);
 
 		// post operation
-		ret = UI_DRAWING_VGLITE_post_operation(gc, vglite_error);
+		ret = UI_VGLITE_post_operation(gc, vglite_error);
 	}
 	// else no error: the drawing is just "not performed"
 
@@ -390,7 +392,7 @@ DRAWING_Status VG_DRAWING_VGLITE_drawPath(MICROUI_GraphicsContext* gc, jbyte* pa
 DRAWING_Status VG_DRAWING_VGLITE_drawGradient(MICROUI_GraphicsContext* gc, jbyte* pathData, jint x, jint y, jfloat* matrix, jint fillRule, jint alpha, jint blend, jint* gradientData, jfloat* gradientMatrix){
 	DRAWING_Status ret = DRAWING_DONE;
 
-	if (DISPLAY_VGLITE_enable_vg_lite_scissor(gc)) {
+	if (UI_VGLITE_enable_vg_lite_scissor(gc)) {
 
 		// prepare path
 		vg_lite_path_t* vglite_path = VG_DRAWING_VGLITE_to_vglite_path((MICROVG_PATH_HEADER_t*)pathData);
@@ -411,15 +413,15 @@ DRAWING_Status VG_DRAWING_VGLITE_drawGradient(MICROUI_GraphicsContext* gc, jbyte
 			_update_gradient(&vglite_gradient);
 
 			// draw
-			render_buffer = DISPLAY_VGLITE_configure_destination(gc);
+			render_buffer = UI_VGLITE_configure_destination(gc);
 			vglite_error = vg_lite_draw_gradient(render_buffer, vglite_path, vglite_fill, &vglite_matrix, &vglite_gradient, vglite_blend);
 
 			// post operation
-			ret = UI_DRAWING_VGLITE_post_operation(gc, vglite_error);
+			ret = UI_VGLITE_post_operation(gc, vglite_error);
 			VG_DRAWING_VGLITE_clear_gradient(&vglite_gradient);
 		}
 		else {
-			ret = DRAWING_VGLITE_report_vglite_error(gc, vglite_error);
+			ret = UI_VGLITE_report_vglite_error(gc, vglite_error);
 		}
 
 	}
@@ -451,8 +453,8 @@ DRAWING_Status VG_DRAWING_VGLITE_drawImage(MICROUI_GraphicsContext* gc, void* im
 	float height;
 	VG_DRAWING_get_image_size(image, &width, &height);
 
-	if (DISPLAY_VGLITE_enable_vg_lite_scissor_area(gc, width, height, matrix)) {
-		render_buffer = DISPLAY_VGLITE_configure_destination(gc);
+	if (UI_VGLITE_enable_vg_lite_scissor_area(gc, width, height, matrix)) {
+		render_buffer = UI_VGLITE_configure_destination(gc);
 		draw_gradient_flushed = true; // no drawing with gradient has been added yet
 		bool rendered;
 		*errno = VG_DRAWING_VGLITE_draw_image(&_draw_image_element, image, matrix, alpha, elapsed, color_matrix, &rendered);

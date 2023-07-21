@@ -13,7 +13,7 @@
 * @brief MicroVG library low level API. Provides helper defines and functions to
 * manipulates the VG-Lite objects.
 * @author MicroEJ Developer Team
-* @version 5.0.1
+* @version 6.0.0
 */
 
 #if defined __cplusplus

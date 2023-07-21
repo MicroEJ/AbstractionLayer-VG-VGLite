@@ -9,7 +9,7 @@
 * @file
 * @brief MicroEJ MicroVG library low level API: implementation over Freetype and VG-Lite.
 * @author MicroEJ Developer Team
-* @version 5.0.1
+* @version 6.0.0
 */
 
 // -----------------------------------------------------------------------------
@@ -36,8 +36,6 @@
 #include "microvg_vglite_helper.h"
 #include "vg_lite.h"
 #include "ftvector/ftvector.h"
-#include "display_vglite.h"
-#include "vglite_path.h"
 #include "vg_drawing_vglite.h"
 
 // -----------------------------------------------------------------------------
@@ -223,8 +221,6 @@ jint VG_DRAWING_VGLITE_draw_string(VG_DRAWING_VGLITE_draw_glyph_t drawer, jchar*
 	}
 
 	float scale = __get_scale(size, face);
-	int advanceX = 0;
-	int advanceY = 0;
 	float letterSpacingScaled = letterSpacing / scale;
 	float radiusScaled = radius / scale;
 
@@ -241,67 +237,73 @@ jint VG_DRAWING_VGLITE_draw_string(VG_DRAWING_VGLITE_draw_glyph_t drawer, jchar*
 
 	// Layout variables
 	int glyph_index ; // current glyph index
-	int previous_glyph_index = 0; // previous glyph index for kerning
-
-	int advance_x;
-	int advance_y;
-	int offset_x;
-	int offset_y;
 
 	int length = (int)SNI_getArrayLength(text);
-	MICROVG_HELPER_layout_configure(faceHandle, text, length);
 
-	while((LLVG_SUCCESS == result) && (MICROVG_HELPER_layout_load_glyph(&glyph_index, &advance_x, &advance_y, &offset_x, &offset_y))) {
-		// At that point the current glyph has been loaded by Freetype
+	if (0 < length) {
 
-		int charWidth = advance_x;
+		int glyph_offset_y;
+		int glyph_advance_x;
+		int glyph_advance_y;
+		int glyph_offset_x;
+		int advance_x = 0;
+		int advance_Y = 0;
+		int previous_glyph_index = 0; // previous glyph index for kerning
 
-		if (0 == previous_glyph_index){
-			// first glyph: remove the first blank line
-			if( 0 == face->glyph->metrics.width) {
-				advanceX -= charWidth;
+		MICROVG_HELPER_layout_configure(faceHandle, text, length);
+
+		while((LLVG_SUCCESS == result) && (MICROVG_HELPER_layout_load_glyph(&glyph_index, &glyph_advance_x, &glyph_advance_y, &glyph_offset_x, &glyph_offset_y))) {
+			// At that point the current glyph has been loaded by Freetype
+
+			int charWidth = glyph_advance_x;
+
+			if (0 == previous_glyph_index){
+				// first glyph: remove the first blank line
+				if( 0 == face->glyph->metrics.width) {
+					advance_x -= charWidth;
+				}
+				else {
+					advance_x -= face->glyph->metrics.horiBearingX;
+				}
 			}
-			else {
-				advanceX -= face->glyph->metrics.horiBearingX;
+
+			LLVG_MATRIX_IMPL_copy(vglocalGlyphMatrix, vgLocalMatrix);
+
+			if(0.f == radius) {
+				LLVG_MATRIX_IMPL_translate(vglocalGlyphMatrix, advance_x + glyph_offset_x, baselineposition + advance_Y  + glyph_offset_y);
+			} else {
+				float sign = (DIRECTION_CLOCK_WISE != direction) ? -1.f : 1.f;
+
+				// Space characters joining bboxes at baseline
+				float angleDegrees = 90 + __get_angle(advance_x + glyph_offset_x, radiusScaled)	+ __get_angle(charWidth / 2, radiusScaled);
+
+				// Rotate to angle
+				LLVG_MATRIX_IMPL_rotate(vglocalGlyphMatrix, sign * angleDegrees);
+
+				// Translate left to center of bbox
+				// Translate baseline over circle
+				LLVG_MATRIX_IMPL_translate(vglocalGlyphMatrix, -charWidth / 2, -sign * radiusScaled);
 			}
+
+			// Draw the glyph
+			FT_Error error = __render_glyph(face, glyph_index, INT_TO_FT_COLOR(color));
+			if (FT_ERR( Ok ) != error) {
+				MEJ_LOG_ERROR_MICROVG("Error while rendering glyphid %d: 0x%x, refer to fterrdef.h\n",glyph_index, error);
+				result = (FT_ERR( Out_Of_Memory ) == error) ? LLVG_OUT_OF_MEMORY : LLVG_DATA_INVALID;
+				continue;
+			}
+
+			// at least one glyph has been drawn
+			*rendered = true;
+
+			// Compute advance to next glyph
+			advance_x += charWidth;
+			advance_x += (int)letterSpacingScaled;
+
+			advance_Y += glyph_advance_y;
+
+			previous_glyph_index = glyph_index;
 		}
-
-		LLVG_MATRIX_IMPL_copy(vglocalGlyphMatrix, vgLocalMatrix);
-
-		if(0.f == radius) {
-			LLVG_MATRIX_IMPL_translate(vglocalGlyphMatrix, advanceX + offset_x, baselineposition + advanceY  + offset_y);
-		} else {
-			float sign = (DIRECTION_CLOCK_WISE != direction) ? -1.f : 1.f;
-
-			// Space characters joining bboxes at baseline
-			float angleDegrees = 90 + __get_angle(advanceX + offset_x, radiusScaled)	+ __get_angle(charWidth / 2, radiusScaled);
-
-			// Rotate to angle
-			LLVG_MATRIX_IMPL_rotate(vglocalGlyphMatrix, sign * angleDegrees);
-
-			// Translate left to center of bbox
-			// Translate baseline over circle
-			LLVG_MATRIX_IMPL_translate(vglocalGlyphMatrix, -charWidth / 2, -sign * radiusScaled);
-		}
-
-		// Draw the glyph
-		FT_Error error = __render_glyph(face, glyph_index, INT_TO_FT_COLOR(color));
-		if (FT_ERR( Ok ) != error) {
-			MEJ_LOG_ERROR_MICROVG("Error while rendering glyphid %d: 0x%x, refer to fterrdef.h\n",glyph_index, error);
-			result = (FT_ERR( Out_Of_Memory ) == error) ? LLVG_OUT_OF_MEMORY : LLVG_DATA_INVALID;
-			continue;
-		}
-
-		// at least one glyph has been drawn
-		*rendered = true;
-
-		// Compute advance to next glyph
-		advanceX += charWidth;
-		advanceX += (int)letterSpacingScaled;
-
-		advanceY += advance_y;
-
-		previous_glyph_index = glyph_index;
 	}
 
 	return result;

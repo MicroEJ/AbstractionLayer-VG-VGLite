@@ -11,7 +11,7 @@
  * (in VG-Lite internal format).
  *
  * @author MicroEJ Developer Team
- * @version 5.0.1
+ * @version 6.0.0
  */
 
 #if !defined BVI_VGLITE_H

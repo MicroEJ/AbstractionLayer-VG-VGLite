@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] - 2023-07-21
+
+### Added
+
+  - Add support for DST_OUT and PLUS blend modes (VG Pack 1.4.0).
+
+### Changed
+
+  - Make CCO compatible with the CCO `microui-vglite#7.0.0` (not backward compatible).
+
+### Fixed
+
+  - Fix the SystemView log identifiers.
+  - Remove the include of the unknown header file `trace_vglite.h` (require a re-build of FreeType library).
+  
+### Migration Guide
+
+  - Follow the migration steps of CCO MicroUI-VGLite 7.0.0.
+  - [VEE Port configuration project] 
+  		- CCO MicroVG-VGLite 6.0.0.
+  - Build the VEE Port, the Freetype library (in the case of a dedicated project) and the BSP.
+  
 ## [5.0.1] - 2023-06-08
 
 ### Fixed
@@ -36,7 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   - Follow the migration steps of CCO MicroVG 3.0.0
   - [VEE Port configuration project] 
-  		- CCO MicroVG-VGLite 5.0.0.
+  		- Fetch CCO MicroVG-VGLite 5.0.0.
   - [BSP project] 
   		- Delete the properties file `cco_microvg-vglite.properties`.
   		- Delete the C files `LLVG_BVI_impl.c` and `LLVG_PATH_PAINTER_vglite.c` and remove them from the C project configuration.

@@ -9,7 +9,7 @@
 * @file
 * @brief Freetype vglite renderer
 * @author MicroEJ Developer Team
-* @version 5.0.1
+* @version 6.0.0
 */
 
 #define FT_MAKE_OPTION_SINGLE_OBJECT
@@ -43,33 +43,8 @@
 #define FT_MEM_ZERO( dest, count )  FT_MEM_SET( dest, 0, count )
 #endif
 
-#include "trace_vglite.h"
-#include "display_vglite.h"
-#include "vglite_path.h"
 #include "microvg_helper.h"
 #include "vg_drawing_vglite.h"
-
-/*
- * @brief Logs an init gpu start event
- *
- * @param[in] operation: The VGLite operation sent to the GPU
- */
-// cppcheck-suppress [misra-c2012-20.10]
-#define FT_VGLITE_TRACE_INIT_GPU_START(operation) \
-		TRACE_PLATFORM_START_U32( \
-				VGLITE, \
-				VGLITE_TRACE_INIT_GPU, \
-				VGLITE_TRACE_OP_ ## operation \
-		);
-
-/*
- * @brief Logs an init gpu end event
- */
-#define FT_VGLITE_TRACE_INIT_GPU_END() \
-		TRACE_PLATFORM_END_VOID( \
-				VGLITE, \
-				VGLITE_TRACE_INIT_GPU \
-		);
 
 /*
  * @brief INIT_GPU event identifier
@@ -350,10 +325,8 @@ vglite_convert_glyph( void )
 			// Get fill rule from outline
 			vg_lite_fill_t vg_lite_fill_rule = (_worker.outline.flags & FT_OUTLINE_EVEN_ODD_FILL) ? VG_LITE_FILL_EVEN_ODD : VG_LITE_FILL_NON_ZERO;
 
-			FT_VGLITE_TRACE_INIT_GPU_START(DRAW);
 			VG_DRAWING_VGLITE_draw_glyph_t drawer = (VG_DRAWING_VGLITE_draw_glyph_t)(_worker.vglite_dest);
 			jint llvg_error = (*drawer)(&_worker.vglite_path, vg_lite_fill_rule, _worker.vglite_matrix, _worker.vg_lite_blend, _worker.vg_lite_color, _worker.vg_lite_gradient);
-			FT_VGLITE_TRACE_INIT_GPU_END();
 
 			if (LLVG_SUCCESS != llvg_error) {
 				error = (LLVG_OUT_OF_MEMORY == llvg_error) ? FT_ERR( Out_Of_Memory ) : FT_ERR( Cannot_Render_Glyph ) ;

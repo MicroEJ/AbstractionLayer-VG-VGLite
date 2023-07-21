@@ -10,7 +10,7 @@
  * @brief MicroEJ MicroVG library low level API: image management.This file draws an
  * image and can fill a BufferedVectorImage.
  * @author MicroEJ Developer Team
- * @version 5.0.1
+ * @version 6.0.0
  */
 
 // -----------------------------------------------------------------------------
@@ -32,12 +32,12 @@
 #include "color.h"
 #include "vg_lite.h"
 #include "vg_lite_kernel.h"
-#include "display_vglite.h"
-#include "vglite_path.h"
 #include "microvg_configuration.h"
 #include "microvg_path.h"
 #include "microvg_vglite_helper.h"
 #include "microvg_helper.h"
+#include "microvg_trace.h"
+#include "mej_math.h"
 #include "vg_drawing_vglite.h"
 #include "ui_drawing_bvi.h"
 #include "bvi_vglite.h"
@@ -106,6 +106,13 @@
  */
 #define GRADIENT_COPY_SIZE (sizeof(vg_lite_linear_gradient_t) - sizeof(vg_lite_buffer_t))
 #define GRADIENT_CMP_SIZE (GRADIENT_COPY_SIZE - sizeof(vg_lite_matrix_t))
+
+/*
+ * @brief Macro to add an IMAGE event and its type.
+ */
+#define LOG_MICROVG_IMAGE_START(fn) LOG_MICROVG_START(LOG_MICROVG_IMAGE_ID, CONCAT_DEFINES(LOG_MICROVG_IMAGE_, fn))
+#define LOG_MICROVG_IMAGE_END(fn) LOG_MICROVG_END(LOG_MICROVG_IMAGE_ID, CONCAT_DEFINES(LOG_MICROVG_IMAGE_, fn))
+
 
 // -----------------------------------------------------------------------------
 // Java library constants (static final)
@@ -794,13 +801,12 @@ static inline uint8_t* _alloc_data(uint32_t size) {
 }
 
 /*
- * @brief Stores the given data in the heap or returns the given pointer
- * when targets RO memory (no need to copy).
+ * @brief Stores the given data in the heap.
  *
  * @param[in] data: pointer on the data to store.
  * @param[in] size: the data's size.
  *
- * @return the pointer to the stored data or the ROM address.
+ * @return the pointer to the stored data or NULL (OOM).
  */
 static uint8_t* _store_data(void* data, size_t size) {
 	uint8_t* ret = _alloc_data(size);
@@ -834,7 +840,7 @@ static inline bool _is_image_bvi(vector_image_t* image) {
  *
  * @param[in] transformation: pointer on the transformation to store.
  *
- * @return the pointer to the stored transformation.
+ * @return the pointer to the stored transformation or NULL (OOM).
  */
 static vg_transformation_t* _store_vg_transformation(vg_transformation_t * transformation) {
 	// cppcheck-suppress [misra-c2012-11.3] the stored data is a vg_transformation_t for sure
@@ -2581,7 +2587,7 @@ void LLVG_BVI_IMPL_map_context(MICROUI_Image* ui, void* sni_context) {
 
 void LLVG_BVI_IMPL_clear(MICROUI_GraphicsContext* gc) {
 
-	if (LLUI_DISPLAY_requestDrawing(gc, (SNI_callback)&Java_ej_microvg_VectorGraphicsNatives_clear)) {
+	if (LLUI_DISPLAY_requestDrawing(gc, (SNI_callback)&LLVG_BVI_IMPL_clear)) {
 
 		// map a struct on graphics context's pixel area
 		vector_buffered_image_t* image = MAP_BVI_ON_GC(gc);
@@ -2607,6 +2613,8 @@ void VG_DRAWING_get_image_size(void* sni_context, float* width, float* height) {
 }
 
 jint Java_ej_microvg_VectorGraphicsNatives_getImage(char* path, jint path_length, SNIX_resource* res, jint* metadata) {
+
+	LOG_MICROVG_IMAGE_START(load);
 
 	(void)path_length;
 
@@ -2640,6 +2648,8 @@ jint Java_ej_microvg_VectorGraphicsNatives_getImage(char* path, jint path_length
 
 		ret = LLVG_SUCCESS;
 	}
+
+	LOG_MICROVG_IMAGE_END(load);
 	return ret;
 }
 
@@ -2667,6 +2677,8 @@ jint VG_DRAWING_VGLITE_draw_image(VG_DRAWING_VGLITE_draw_image_element_t drawer,
 
 jint Java_ej_microvg_VectorGraphicsNatives_createImage(SNIX_resource* source, SNIX_resource* dest, const float color_matrix[]) {
 
+	LOG_MICROVG_IMAGE_START(create);
+
 	// cppcheck-suppress [misra-c2012-11.5] source is a vector image for sure
 	vector_image_t* image = (vector_image_t*)source->data;
 
@@ -2693,11 +2705,14 @@ jint Java_ej_microvg_VectorGraphicsNatives_createImage(SNIX_resource* source, SN
 		ret = LLVG_OUT_OF_MEMORY;
 	}
 
+	LOG_MICROVG_IMAGE_END(create);
 	return ret;
 }
 
 void Java_ej_microvg_VectorGraphicsNatives_closeImage(SNIX_resource* res) {
 	if ((NULL != res) && (NULL != res->data) && ((uint32_t)0 < res->size)) {
+
+		LOG_MICROVG_IMAGE_START(close);
 
 		// cppcheck-suppress [misra-c2012-11.5] cast res->data as uint8_t* is allowed
 		if (_is_raw_image((uint8_t*)res->data)) {
@@ -2721,7 +2736,10 @@ void Java_ej_microvg_VectorGraphicsNatives_closeImage(SNIX_resource* res) {
 #else
 			// else : it is a image allocated in java heap: nothing to free
 #endif //  #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
+
 		}
+
+		LOG_MICROVG_IMAGE_END(close);
 
 		res->data = NULL;
 		res->size = 0;
