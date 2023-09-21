@@ -16,7 +16,7 @@ extern "C" {
  * format specified in the VEE port. When the drawing cannot be performed by the GPU,
  * the software implementation is used insted.
  * @author MicroEJ Developer Team
- * @version 6.0.0
+ * @version 6.1.0
  * @see ui_drawing_vglite.h
  */
 

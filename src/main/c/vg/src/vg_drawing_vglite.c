@@ -17,7 +17,7 @@ Use of this source code is governed by a BSD-style license that can be found wit
  * MicroUI BufferedImage).
  *
  * @author MicroEJ Developer Team
- * @version 6.0.0
+ * @version 6.1.0
  */
 
 // -----------------------------------------------------------------------------
@@ -79,6 +79,10 @@ static inline DRAWING_Status _post_operation(MICROUI_GraphicsContext* gc, jint e
 	else {
 		// else: nothing has been drawn (empty drawing, out of clip, etc.): not an error
 		ret = DRAWING_DONE;
+	}
+	if (DRAWING_RUNNING != ret) {
+		// GPU is useless now, can be disabled. No GPU access should be done after this line
+		UI_VGLITE_IMPL_notify_gpu_stop();
 	}
 	return ret;
 }

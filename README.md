@@ -7,7 +7,7 @@ This component contains the Low-Level API (LLAPI) of MicroVG implementation over
 
 Add the following line to your `module.ivy`:
 
-    <dependency org="com.microej.clibrary.llimpl" name="microvg-vglite" rev="6.0.0"/>
+    <dependency org="com.microej.clibrary.llimpl" name="microvg-vglite" rev="6.1.0"/>
 
 # Requirements
 

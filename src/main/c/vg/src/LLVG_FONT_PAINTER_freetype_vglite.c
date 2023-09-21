@@ -9,7 +9,7 @@
 * @file
 * @brief MicroEJ MicroVG library low level API: implementation over Freetype and VG-Lite.
 * @author MicroEJ Developer Team
-* @version 6.0.0
+* @version 6.1.0
 */
 
 // -----------------------------------------------------------------------------

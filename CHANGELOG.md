@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1.0] - 2023-09-21
+
+### Added
+
+  - Add the compatibility with VG-Lite `3.0.15_rev7`.
+
+### Fixed
+
+  - Fix the use of the define `VG_BLIT_WORKAROUND` (useless).
+  - Fix the GPU deactivation when a drawing is not performed for any reason.
+
 ## [6.0.0] - 2023-07-21
 
 ### Added
