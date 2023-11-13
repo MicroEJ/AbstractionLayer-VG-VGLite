@@ -10,7 +10,7 @@
  * @brief MicroEJ MicroVG library low level API: image management.This file draws an
  * image and can fill a BufferedVectorImage.
  * @author MicroEJ Developer Team
- * @version 6.1.0
+ * @version 6.1.1
  */
 
 // -----------------------------------------------------------------------------

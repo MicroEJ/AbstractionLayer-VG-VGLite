@@ -17,7 +17,7 @@
  * drawing function is specified by vg_drawing_bvi.c to target BufferedVectorImage buffer.
  *
  * @author MicroEJ Developer Team
- * @version 6.1.0
+ * @version 6.1.1
  * @see vg_drawing_vglite.c
  * @see ui_drawing_bvi.c
  */
@@ -70,12 +70,13 @@ static DRAWING_Status _draw_string_on_circle(MICROUI_GraphicsContext* gc, jchar*
 		VG_DRAWING_VGLITE_prepare_matrix(&vglite_matrix, x, y, matrix);
 
 		// prepare color
+		vg_lite_blend_t vglite_blend = MICROVG_VGLITE_HELPER_get_blend(blend);
 		vg_lite_color_t vglite_color = (vg_lite_color_t)((gc->foreground_color & 0x00FFFFFF) + (int)(((unsigned int) alpha) << 24));
 
 		// add operation
 		bool rendered;
 		target = MAP_BVI_ON_GC(gc);
-		jint error = VG_DRAWING_VGLITE_draw_string(&_add_glyph_color, text, faceHandle, size, &vglite_matrix, blend, vglite_color, MICROVG_HELPER_NULL_GRADIENT, letterSpacing, radius, direction, &rendered);
+		jint error = VG_DRAWING_VGLITE_draw_string(&_add_glyph_color, text, faceHandle, size, &vglite_matrix, vglite_blend, vglite_color, MICROVG_HELPER_NULL_GRADIENT, letterSpacing, radius, direction, &rendered);
 		MICROVG_VGLITE_handle_error(gc, error);
 	}
 	// else no error: the drawing is just "not performed"
@@ -93,6 +94,7 @@ static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext* g
 		VG_DRAWING_VGLITE_prepare_matrix(&vglite_matrix, x, y, matrix);
 
 		// parepare gradient
+		vg_lite_blend_t vglite_blend = MICROVG_VGLITE_HELPER_get_blend(blend);
 		vg_lite_linear_gradient_t vglite_gradient;
 		vg_lite_error_t vglite_error = VG_DRAWING_VGLITE_prepare_gradient(&vglite_gradient, gradientData, gradientMatrix, &vglite_matrix, alpha);
 
@@ -101,7 +103,7 @@ static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext* g
 			// add operation
 			bool rendered;
 			target = MAP_BVI_ON_GC(gc);
-			jint error = VG_DRAWING_VGLITE_draw_string(&_add_glyph_gradient, text, faceHandle, size, &vglite_matrix, blend, 0, &vglite_gradient, letterSpacing, radius, direction, &rendered);
+			jint error = VG_DRAWING_VGLITE_draw_string(&_add_glyph_gradient, text, faceHandle, size, &vglite_matrix, vglite_blend, 0, &vglite_gradient, letterSpacing, radius, direction, &rendered);
 			MICROVG_VGLITE_handle_error(gc, error);
 
 			// post operation

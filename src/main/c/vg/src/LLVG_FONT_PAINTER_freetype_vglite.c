@@ -9,7 +9,7 @@
 * @file
 * @brief MicroEJ MicroVG library low level API: implementation over Freetype and VG-Lite.
 * @author MicroEJ Developer Team
-* @version 6.1.0
+* @version 6.1.1
 */
 
 // -----------------------------------------------------------------------------
@@ -210,7 +210,7 @@ static FT_Error __render_glyph(FT_Face face, FT_UInt glyph_index, FT_Color color
 // vg_drawing_vglite.h painter functions
 // -----------------------------------------------------------------------------
 
-jint VG_DRAWING_VGLITE_draw_string(VG_DRAWING_VGLITE_draw_glyph_t drawer, jchar* text, jint faceHandle, jfloat size, vg_lite_matrix_t* vgGlobalMatrix, jint blend, int color, vg_lite_linear_gradient_t *gradient, jfloat letterSpacing, jfloat radius, jint direction, bool* rendered){
+jint VG_DRAWING_VGLITE_draw_string(VG_DRAWING_VGLITE_draw_glyph_t drawer, jchar* text, jint faceHandle, jfloat size, vg_lite_matrix_t* vgGlobalMatrix, vg_lite_blend_t blend, int color, vg_lite_linear_gradient_t *gradient, jfloat letterSpacing, jfloat radius, jint direction, bool* rendered){
 	FT_Face face = (FT_Face) faceHandle;
 	jint result = LLVG_SUCCESS;
 	*rendered = false;
@@ -233,7 +233,7 @@ jint VG_DRAWING_VGLITE_draw_string(VG_DRAWING_VGLITE_draw_glyph_t drawer, jchar*
 	vg_lite_matrix_t localGlyphMatrix;
 	jfloat* vglocalGlyphMatrix = MAP_VGLITE_MATRIX(&localGlyphMatrix);
 
-	__set_renderer(drawer, &localGlyphMatrix, color, gradient, MICROVG_VGLITE_HELPER_get_blend(blend));
+	__set_renderer(drawer, &localGlyphMatrix, color, gradient, blend);
 
 	// Layout variables
 	int glyph_index ; // current glyph index

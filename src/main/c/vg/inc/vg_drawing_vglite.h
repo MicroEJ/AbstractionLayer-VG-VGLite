@@ -16,7 +16,7 @@ extern "C" {
  * format specified in the VEE port. When the drawing cannot be performed by the GPU,
  * the software implementation is used insted.
  * @author MicroEJ Developer Team
- * @version 6.1.0
+ * @version 6.1.1
  * @see ui_drawing_vglite.h
  */
 
@@ -55,7 +55,7 @@ extern "C" {
 #else // !defined(LLUI_GC_SUPPORTED_FORMATS) || (LLUI_GC_SUPPORTED_FORMATS <= 1)
 
 /*
- * The fonctions VG_DRAWING_VGLITE_xxx() are indirectly called through some tables.
+ * The functions VG_DRAWING_VGLITE_xxx() are indirectly called through some tables.
  * The functions have got the identifier "0" as suffix. This file overrides each
  * function independently to use the VG-Lite GPU.
  */
@@ -180,7 +180,7 @@ vg_lite_path_t* VG_DRAWING_VGLITE_to_vglite_path(MICROVG_PATH_HEADER_t* path);
  *
  * @return LLVG_SUCCESS if something has been drawn, an different value otherwise
  */
-jint VG_DRAWING_VGLITE_draw_string(VG_DRAWING_VGLITE_draw_glyph_t drawer, jchar* text, jint faceHandle, jfloat size,  vg_lite_matrix_t* vgGlobalMatrix, jint blend, int color, vg_lite_linear_gradient_t *gradient, jfloat letterSpacing, jfloat radius, jint direction, bool* rendered);
+jint VG_DRAWING_VGLITE_draw_string(VG_DRAWING_VGLITE_draw_glyph_t drawer, jchar* text, jint faceHandle, jfloat size,  vg_lite_matrix_t* vgGlobalMatrix, vg_lite_blend_t blend, int color, vg_lite_linear_gradient_t *gradient, jfloat letterSpacing, jfloat radius, jint direction, bool* rendered);
 
 /*
  * @brief Generic function to prepare the drawing of an image. The implementation does
@@ -231,7 +231,7 @@ DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircle(MICROUI_GraphicsContext* gc,
 /*
  * @brief Implementation of drawStringOnCircleGradient over VG-Lite. See vg_drawing.h
  */
- DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircleGradient(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jint x, jint y, jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jfloat radius, jint direction, jint *gradientData, jfloat *gradientMatrix);
+DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircleGradient(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jint x, jint y, jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jfloat radius, jint direction, jint *gradientData, jfloat *gradientMatrix);
 
 /*
  * @brief Implementation of drawImage over VG-Lite. See ui_drawing.h

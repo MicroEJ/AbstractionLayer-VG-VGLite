@@ -9,7 +9,7 @@
  * @file
  * @brief MicroVG library low level API over VG-Lite.
  * @author MicroEJ Developer Team
- * @version 6.1.0
+ * @version 6.1.1
  */
 
 // -----------------------------------------------------------------------------

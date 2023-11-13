@@ -17,7 +17,7 @@ Use of this source code is governed by a BSD-style license that can be found wit
  * MicroUI BufferedImage).
  *
  * @author MicroEJ Developer Team
- * @version 6.1.0
+ * @version 6.1.1
  */
 
 // -----------------------------------------------------------------------------
@@ -84,21 +84,52 @@ static inline DRAWING_Status _post_operation(MICROUI_GraphicsContext* gc, jint e
 		// GPU is useless now, can be disabled. No GPU access should be done after this line
 		UI_VGLITE_IMPL_notify_gpu_stop();
 	}
+	if (!UI_VGLITE_need_to_premultiply() && (VG_LITE_SUCCESS != vg_lite_enable_premultiply())) {
+		// cannot restore premultiplication
+		UI_VGLITE_IMPL_error(false, "vg_lite engine premultiply error: cannot restore the pre multiplication");
+	}
 	return ret;
 }
 
-inline static void _update_color(vg_lite_color_t* color) {
-	// premultiply color
-	*color = UI_VGLITE_premultiply(*color);
+inline static bool _need_to_premultiply(vg_lite_blend_t blend) {
+	bool need_to_premultiply = UI_VGLITE_need_to_premultiply();
+	if (!need_to_premultiply) {
+		switch (blend) {
+			case VG_LITE_BLEND_NONE:
+			case VG_LITE_BLEND_SRC_IN:
+			case VG_LITE_BLEND_DST_IN:
+			case VG_LITE_BLEND_SUBTRACT:
+				if (VG_LITE_SUCCESS != vg_lite_disable_premultiply()) {
+					// have to disable the premultiplication but cannot
+					UI_VGLITE_IMPL_error(false, "vg_lite engine premultiply error: cannot disable the pre multiplication");
+				}
+				else {
+					need_to_premultiply = true;
+				}
+				break;
+			default:
+				// use the GPU premultiplication
+				break;
+		}
+	}
+	return need_to_premultiply;
 }
 
-static void _update_gradient(vg_lite_linear_gradient_t* gradient) {
+inline static void _update_color(vg_lite_color_t* color, vg_lite_blend_t blend) {
+	if (_need_to_premultiply(blend)) {
+		// premultiply color
+		*color = UI_VGLITE_premultiply(*color);
+	}
+}
 
-	// premultiply each color
-	uint32_t count = gradient->count;
-	uint32_t* colors = gradient->colors;
-	for (uint32_t i = 0; i < count; i++) {
-		colors[i] = UI_VGLITE_premultiply(colors[i]);
+static void _update_gradient(vg_lite_linear_gradient_t* gradient, vg_lite_blend_t blend) {
+	if (_need_to_premultiply(blend)) {
+		// premultiply each color
+		uint32_t count = gradient->count;
+		uint32_t* colors = gradient->colors;
+		for (uint32_t i = 0; i < count; i++) {
+			colors[i] = UI_VGLITE_premultiply(colors[i]);
+		}
 	}
 
 	// update the VG-Lite internal image that represents the gradient
@@ -125,7 +156,7 @@ static inline jint _convert_vglite_error_to_llvg_error(vg_lite_error_t vg_lite_e
 static jint _draw_image_element(vg_lite_path_t * path, vg_lite_fill_t fill_rule, vg_lite_matrix_t * matrix, vg_lite_blend_t blend, vg_lite_color_t color, vg_lite_linear_gradient_t * grad, bool is_new_gradient) {
 	vg_lite_error_t ret;
 	if (NULL == grad) {
-		_update_color(&color);
+		_update_color(&color, blend);
 		ret = vg_lite_draw(render_buffer, path, fill_rule, matrix, blend, color);
 	}
 	else {
@@ -139,7 +170,7 @@ static jint _draw_image_element(vg_lite_path_t * path, vg_lite_fill_t fill_rule,
 			}
 
 			// 2- update the shared gradient's image.
-			_update_gradient(grad);
+			_update_gradient(grad, blend);
 		}
 		// else: same gradient than previous: no need to update gradient's image again
 
@@ -171,13 +202,14 @@ static DRAWING_Status _draw_string_on_circle(MICROUI_GraphicsContext* gc, jchar*
 		VG_DRAWING_VGLITE_prepare_matrix(&vglite_matrix, x, y, matrix);
 
 		// prepare color
+		vg_lite_blend_t vglite_blend = MICROVG_VGLITE_HELPER_get_blend(blend);
 		vg_lite_color_t vglite_color = (vg_lite_color_t)((gc->foreground_color & 0x00FFFFFF) + (int)(((unsigned int) alpha) << 24));
-		_update_color(&vglite_color);
+		_update_color(&vglite_color, vglite_blend);
 
 		// draw
 		bool rendered;
 		render_buffer = UI_VGLITE_configure_destination(gc);
-		jint error = VG_DRAWING_VGLITE_draw_string(&_draw_glyph_color, text, faceHandle, size, &vglite_matrix, blend, vglite_color, MICROVG_HELPER_NULL_GRADIENT, letterSpacing, radius, direction, &rendered);
+		jint error = VG_DRAWING_VGLITE_draw_string(&_draw_glyph_color, text, faceHandle, size, &vglite_matrix, vglite_blend, vglite_color, MICROVG_HELPER_NULL_GRADIENT, letterSpacing, radius, direction, &rendered);
 		ret = _post_operation(gc, error, rendered);
 	}
 	// else no error: the drawing is just "not performed"
@@ -201,12 +233,13 @@ static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext* g
 		if (VG_LITE_SUCCESS == vglite_error) {
 
 			// create the gradient image
-			_update_gradient(&vglite_gradient);
+			vg_lite_blend_t vglite_blend = MICROVG_VGLITE_HELPER_get_blend(blend);
+			_update_gradient(&vglite_gradient, vglite_blend);
 
 			// draw
 			bool rendered;
 			render_buffer = UI_VGLITE_configure_destination(gc);
-			jint error = VG_DRAWING_VGLITE_draw_string(&_draw_glyph_gradient, text, faceHandle, size, &vglite_matrix, blend, 0, &vglite_gradient, letterSpacing, radius, direction, &rendered);
+			jint error = VG_DRAWING_VGLITE_draw_string(&_draw_glyph_gradient, text, faceHandle, size, &vglite_matrix, vglite_blend, 0, &vglite_gradient, letterSpacing, radius, direction, &rendered);
 			ret = _post_operation(gc, error, rendered);
 
 			VG_DRAWING_VGLITE_clear_gradient(&vglite_gradient);
@@ -229,7 +262,7 @@ void MICROVG_PATH_initialize(void) {
 	vg_lite_init_path(
 			&render_path,
 			(vg_lite_format_t)MICROVG_PATH_get_path_encoder_format(), // default value
-			VG_LITE_UPPER,
+			VG_LITE_HIGH,
 			0,
 			NULL,
 			-4000, // Left
@@ -351,7 +384,7 @@ vg_lite_path_t* VG_DRAWING_VGLITE_to_vglite_path(MICROVG_PATH_HEADER_t* p){
 	render_path.bounding_box[3] = (vg_lite_float_t)(p->bounds_ymax);
 	render_path.format = (vg_lite_format_t)(p->format);
 	render_path.path_length = (int32_t)(p->data_size);
-	render_path.path = (void*)&(((uint8_t*)p)[p->data_offset]);
+	render_path.path = (void*)&(((uint8_t*)p)[MICROVG_PATH_get_path_header_size()]);
 	render_path.path_changed = 1;
 	return &render_path;
 }
@@ -378,7 +411,7 @@ DRAWING_Status VG_DRAWING_VGLITE_drawPath(MICROUI_GraphicsContext* gc, jbyte* pa
 
 		// prepare color
 		vg_lite_color_t vglite_color = (vg_lite_color_t)color;
-		_update_color(&vglite_color);
+		_update_color(&vglite_color, vglite_blend);
 
 		// draw
 		render_buffer = UI_VGLITE_configure_destination(gc);
@@ -414,7 +447,7 @@ DRAWING_Status VG_DRAWING_VGLITE_drawGradient(MICROUI_GraphicsContext* gc, jbyte
 		if (VG_LITE_SUCCESS == vglite_error) {
 
 			// create the gradient image
-			_update_gradient(&vglite_gradient);
+			_update_gradient(&vglite_gradient, vglite_blend);
 
 			// draw
 			render_buffer = UI_VGLITE_configure_destination(gc);
