@@ -1,14 +1,14 @@
 /*
  * C
  *
- * Copyright 2023 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
 /*
  * @file
  * @brief Implementation of a set of ui_drawing.h drawing functions (MicroUI and Drawing libraries).
- * These are implementations over VG-Lite and the destination buffer format is the BufferedVectorImage
+ * These are implementations over VGLite and the destination buffer format is the BufferedVectorImage
  * format (VEE Port specific). When the drawing cannot be performed by the GPU, the stub implementation
  * is used insted.
  *
@@ -18,7 +18,7 @@
  * drawing function is specified by ui_drawing_bvi.c to target BufferedVectorImage buffer.
  *
  * @author MicroEJ Developer Team
- * @version 6.1.1
+ * @version 7.0.0
  * @see ui_drawing_vglite.c
  */
 
@@ -88,6 +88,11 @@ void UI_DRAWING_BVI_adjustNewImageCharacteristics(jbyte image_format, uint32_t w
 // See the header file for the function documentation
 void UI_DRAWING_BVI_initializeNewImage(MICROUI_Image* image) {
 	BVI_VGLITE_initialize_new_image(image);
+}
+
+// See the header file for the function documentation
+void UI_DRAWING_BVI_freeImageResources(MICROUI_Image* image) {
+	BVI_VGLITE_free_resources(image);
 }
 
 // See the header file for the function documentation

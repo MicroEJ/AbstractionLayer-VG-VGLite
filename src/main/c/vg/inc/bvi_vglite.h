@@ -1,17 +1,17 @@
 /*
  * C
  *
- * Copyright 2023 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
 /*
  * @file
- * @brief Provides some functions to draw VG-Lite elements on a BufferedVectorImage
- * (in VG-Lite internal format).
+ * @brief Provides some functions to draw VGLite elements on a BufferedVectorImage
+ * (in VGLite internal format).
  *
  * @author MicroEJ Developer Team
- * @version 6.1.1
+ * @version 7.0.0
  */
 
 #if !defined BVI_VGLITE_H
@@ -49,6 +49,14 @@ void BVI_VGLITE_adjust_new_image_characteristics(uint32_t width, uint32_t height
  * @see See ui_drawing.h
  */
 void BVI_VGLITE_initialize_new_image(MICROUI_Image* image);
+
+/*
+ * @brief Closes the BufferedVectorImage's resources.
+ *
+ * @see See ui_drawing.h
+ */
+void BVI_VGLITE_free_resources(MICROUI_Image* image);
+
 /*
  * @brief Adds an operation "draw path with a color" in the BufferedVectorImage.
  *

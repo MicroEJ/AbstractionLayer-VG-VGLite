@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022-2023 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2024 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -10,7 +10,7 @@
  * @brief MicroEJ MicroVG library low level API: image management.This file draws an
  * image and can fill a BufferedVectorImage.
  * @author MicroEJ Developer Team
- * @version 6.1.1
+ * @version 7.0.0
  */
 
 // -----------------------------------------------------------------------------
@@ -71,8 +71,8 @@
 /*
  * @brief Allocator management
  */
-#define MALLOC(s) (LLUI_DISPLAY_IMPL_image_heap_allocate(VG_LITE_ALIGN((s), 4)))
-#define FREE(s) (LLUI_DISPLAY_IMPL_image_heap_free(s))
+#define MALLOC(s) (LLUI_DISPLAY_IMPL_imageHeapAllocate(VG_LITE_ALIGN((s), 4)))
+#define FREE(s) (LLUI_DISPLAY_IMPL_imageHeapFree(s))
 //#define DEBUG_ALLOCATOR
 
 #define TIMERATIO_RANGE 65535
@@ -85,6 +85,7 @@
 
 #define COLOR_MATRIX_WIDTH (5)
 #define COLOR_MATRIX_HEIGHT (4)
+#define COLOR_MATRIX_SIZE ((COLOR_MATRIX_WIDTH) * (COLOR_MATRIX_HEIGHT))
 #define RED_OFFSET (0)
 #define GREEN_OFFSET (1)
 #define BLUE_OFFSET (2)
@@ -98,8 +99,8 @@
 /*
  * @brief Copy the gradient content but not the image that renders the gradient
  *
- *  /!\ the VG-Lite gradient is constitued of the gradient header (colors and positions) and a VG-Lite image.
- *  A VG-Lite image is a header + a pixel buffer. This image is made at runtime by VG-Lite library according
+ *  /!\ the VGLite gradient is constitued of the gradient header (colors and positions) and a VGLite image.
+ *  A VGLite image is a header + a pixel buffer. This image is made at runtime by VGLite library according
  *  to the gradient data. The RAW format only embbeds the gradient header, not the "image" part to win some
  *  footprint. By consequence the gradient data to copy from ROM to RAM is:
  *  sizeof(gradient) == sizeof(vg_lite_linear_gradient_t) - sizeof(vg_lite_buffer_t)
@@ -370,7 +371,7 @@ struct vg_block_gradient {
 
 	vg_block_path_t path;
 
-	// /!\ the VG-Lite gradient is only constitued of the gradient header (colors and positions)
+	// /!\ the VGLite gradient is only constitued of the gradient header (colors and positions)
 	// see GRADIENT_COPY_SIZE
 	vg_lite_linear_gradient_t* gradient;
 
@@ -409,7 +410,7 @@ struct vg_block_bvi_image {
 
 	vector_image_t* image;
 	jfloat matrix[9];
-	jfloat color_matrix[COLOR_MATRIX_WIDTH];
+	jfloat color_matrix[COLOR_MATRIX_SIZE];
 	jint elapsed_msb; // prevent unalignment access
 	jint elapsed_lsb;
 
@@ -712,7 +713,7 @@ static void* bvi_target;
  * @brief Color matrix used to combine user matrix and RAW image matrix inside the BVI.
  */
 static const float CONSTANT_ROW[5] = { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f };
-static float combined_color_matrices[COLOR_MATRIX_WIDTH * COLOR_MATRIX_HEIGHT];
+static float combined_color_matrices[COLOR_MATRIX_SIZE];
 
 #endif
 
@@ -1666,7 +1667,7 @@ static jint _bvi_add_draw_raw_image(
 		(void)memcpy((void*)&(op->matrix), (void*)matrix, (size_t)LLVG_MATRIX_SIZE * sizeof(jfloat));
 		if (NULL != color_matrix) {
 			// required size is checked by Java library
-			(void)memcpy((void*)&(op->color_matrix), color_matrix, (size_t)COLOR_MATRIX_WIDTH * sizeof(jfloat));
+			(void)memcpy((void*)&(op->color_matrix), color_matrix, (size_t)COLOR_MATRIX_SIZE * sizeof(jfloat));
 			op->flags = 1u;
 		}
 		else {
@@ -1845,7 +1846,7 @@ static float* _combine_color_matrices(float* a, float* b) {
 			// -> need to combine user matrix and operation matrix
 			// use the shared array
 			dest = combined_color_matrices;
-			(void)memset(dest, 0, (size_t)COLOR_MATRIX_WIDTH * (size_t)COLOR_MATRIX_HEIGHT * sizeof(float));
+			(void)memset(dest, 0, (size_t)COLOR_MATRIX_SIZE * sizeof(float));
 
 			for (int y = 0; y < COLOR_MATRIX_HEIGHT; y++) {
 				int y5 = y * COLOR_MATRIX_WIDTH;
@@ -2401,7 +2402,7 @@ static int _load_external_image(char const* image_name, bool allocation_allowed,
 			// The resource is located in a memory area that cannot be byte-addressed.
 
 			// Allocate memory on the MicroUI image heap to store the image. Its address will be the output address.
-			image = (vector_image_t*) LLUI_DISPLAY_IMPL_image_heap_allocate(resource_size);
+			image = (vector_image_t*) LLUI_DISPLAY_IMPL_imageHeapAllocate(resource_size);
 			if (NULL == image) {
 				// Out of memory.
 				result = LLVG_OUT_OF_MEMORY;
@@ -2413,7 +2414,7 @@ static int _load_external_image(char const* image_name, bool allocation_allowed,
 				}
 				else if (!_is_raw_image((uint8_t*)image)){
 					// it is not a RAW image -> free it
-					LLUI_DISPLAY_IMPL_image_heap_free((uint8_t* )image);
+					LLUI_DISPLAY_IMPL_imageHeapFree((uint8_t* )image);
 					result = LLVG_DATA_INVALID;
 				}
 				else {
@@ -2471,6 +2472,10 @@ void BVI_VGLITE_initialize_new_image(MICROUI_Image* image) {
 	vector_image_t* raw = (vector_image_t*)bvi;
 	_tag_image_in_ram(raw);
 	_bvi_tag_image_as_absolute(raw);
+}
+
+void BVI_VGLITE_free_resources(MICROUI_Image* image) {
+	(void)_bvi_clear_blocks(MAP_BVI_ON_IMAGE(image));
 }
 
 jint BVI_VGLITE_add_draw_path(
@@ -2685,7 +2690,7 @@ jint Java_ej_microvg_VectorGraphicsNatives_createImage(SNIX_resource* source, SN
 	// the source is a RAW image (in ROM or RAM) but not a BVI (see BufferedVectorImage.filterImage())
 	assert(!_is_image_bvi(image));
 
-	dest->data = (void*)LLUI_DISPLAY_IMPL_image_heap_allocate(source->size);
+	dest->data = (void*)LLUI_DISPLAY_IMPL_imageHeapAllocate(source->size);
 	jint ret;
 
 	if (NULL != dest->data){
@@ -2718,26 +2723,9 @@ void Java_ej_microvg_VectorGraphicsNatives_closeImage(SNIX_resource* res) {
 		if (_is_raw_image((uint8_t*)res->data)) {
 			// have to free to vector resource image data
 			// cppcheck-suppress [misra-c2012-11.5] cast the resource in a u8 address
-			LLUI_DISPLAY_IMPL_image_heap_free((uint8_t* )res->data);
+			LLUI_DISPLAY_IMPL_imageHeapFree((uint8_t* )res->data);
 		}
-		else {
-
-#if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
-			// cppcheck-suppress [misra-c2012-11.5] source is a vector image for sure
-			vector_image_t* image = (vector_image_t*)res->data;
-
-			if (_is_image_bvi(image)) {
-				// res->data points on the glosed buffered image's data buffer. Just have to clear the
-				// bvi blocks because the associated buffered image is already closed
-
-				// cppcheck-suppress [misra-c2012-11.3] source is a vector_buffered_image_t for sure
-				(void)_bvi_clear_blocks((vector_buffered_image_t*)image);
-			}
-#else
-			// else : it is a image allocated in java heap: nothing to free
-#endif //  #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
-
-		}
+		// else: it is an image allocated on the Java heap or in a BVI: nothing to free
 
 		LOG_MICROVG_IMAGE_END(close);
 

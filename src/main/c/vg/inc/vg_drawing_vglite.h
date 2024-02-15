@@ -1,5 +1,5 @@
 /* 
- * Copyright 2023 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -12,11 +12,11 @@ extern "C" {
 /*
  * @file
  * @brief Implementation of a set of vg_drawing.h drawing functions (library MicroVG).
- * These are implementations over VG-Lite and the destination buffer format is the
+ * These are implementations over VGLite and the destination buffer format is the
  * format specified in the VEE port. When the drawing cannot be performed by the GPU,
  * the software implementation is used insted.
  * @author MicroEJ Developer Team
- * @version 6.1.1
+ * @version 7.0.0
  * @see ui_drawing_vglite.h
  */
 
@@ -41,7 +41,7 @@ extern "C" {
 
 /*
  * The fonction VG_DRAWING_VGLITE_xxx() are directly called by LLVG_PAINTER_impl.c
- * This file overrides each function independently to use the VG-Lite GPU.
+ * This file overrides each function independently to use the VGLite GPU.
  */
 
 #define VG_DRAWING_VGLITE_drawPath VG_DRAWING_drawPath
@@ -57,7 +57,7 @@ extern "C" {
 /*
  * The functions VG_DRAWING_VGLITE_xxx() are indirectly called through some tables.
  * The functions have got the identifier "0" as suffix. This file overrides each
- * function independently to use the VG-Lite GPU.
+ * function independently to use the VGLite GPU.
  */
 
 #define VG_DRAWING_VGLITE_drawPath VG_DRAWING_drawPath_0
@@ -121,9 +121,9 @@ typedef jint (* VG_DRAWING_VGLITE_draw_image_element_t) (
 // --------------------------------------------------------------------------------
 
 /*
- * @brief Converts a MicroVG matrix in a VG-Lite matrix applying a translation.
+ * @brief Converts a MicroVG matrix in a VGLite matrix applying a translation.
  *
- * @param[out] vg_lite_matrix the VG-Lite matrix to set
+ * @param[out] vg_lite_matrix the VGLite matrix to set
  * @param[in] x the X translation to apply
  * @param[in] y the Y translation to apply
  * @param[in] matrix the MicroVG transformation to apply
@@ -131,7 +131,7 @@ typedef jint (* VG_DRAWING_VGLITE_draw_image_element_t) (
 void VG_DRAWING_VGLITE_prepare_matrix(vg_lite_matrix_t* vg_lite_matrix, jfloat x, jfloat y, jfloat* matrix) ;
 
 /*
- * @brief Converts a MicroVG LinearGradient in a VG-Lite gradient according to
+ * @brief Converts a MicroVG LinearGradient in a VGLite gradient according to
  * the drawing parameters. After this call, the gradient is ready to be updated
  * by calling vg_lite_update_grad().
  *
@@ -143,20 +143,20 @@ void VG_DRAWING_VGLITE_prepare_matrix(vg_lite_matrix_t* vg_lite_matrix, jfloat x
 vg_lite_error_t VG_DRAWING_VGLITE_prepare_gradient(vg_lite_linear_gradient_t* vg_lite_gradient, jint* gradientData, jfloat* gradientMatrix, vg_lite_matrix_t* vg_lite_matrix, int alpha) ;
 
 /*
- * @brief Clears the VG-Lite gradient data: vg_lite_init_grad() allocates a buffer
- * in VG-Lite buffer, this function frees it.
+ * @brief Clears the VGLite gradient data: vg_lite_init_grad() allocates a buffer
+ * in VGLite buffer, this function frees it.
  *
- * @param[in] gradient the VG-Lite gradient to clear
+ * @param[in] gradient the VGLite gradient to clear
  */
 void VG_DRAWING_VGLITE_clear_gradient(vg_lite_linear_gradient_t* gradient) ;
 
 /*
- * @brief Converts a MicroVG path in a VG-Lite path. The same VG-Lite path is returned, by
+ * @brief Converts a MicroVG path in a VGLite path. The same VGLite path is returned, by
  * consequence only one path can be converted at any time.
  *
  * @param[in] path the MicroVG path to convert
  *
- * @return the VG-Lite path
+ * @return the VGLite path
  */
 vg_lite_path_t* VG_DRAWING_VGLITE_to_vglite_path(MICROVG_PATH_HEADER_t* path);
 
@@ -204,37 +204,37 @@ jint VG_DRAWING_VGLITE_draw_image(VG_DRAWING_VGLITE_draw_image_element_t drawer,
 // --------------------------------------------------------------------------------
 
 /*
- * @brief Implementation of drawPath over VG-Lite. See vg_drawing.h
+ * @brief Implementation of drawPath over VGLite. See vg_drawing.h
  */
 DRAWING_Status VG_DRAWING_VGLITE_drawPath(MICROUI_GraphicsContext* gc, jbyte* path, jint x, jint y, jfloat* matrix, jint fillRule, jint blend, jint color);
 
 /*
- * @brief Implementation of drawGradient over VG-Lite. See vg_drawing.h
+ * @brief Implementation of drawGradient over VGLite. See vg_drawing.h
  */
 DRAWING_Status VG_DRAWING_VGLITE_drawGradient(MICROUI_GraphicsContext* gc, jbyte* path, jint x, jint y, jfloat* matrix, jint fillRule, jint alpha, jint blend, jint* gradient, jfloat* gradientMatrix);
 
 /*
- * @brief Implementation of drawString over VG-Lite. See vg_drawing.h
+ * @brief Implementation of drawString over VGLite. See vg_drawing.h
  */
 DRAWING_Status VG_DRAWING_VGLITE_drawString(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jfloat x, jfloat y,  jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing);
 
 /*
- * @brief Implementation of drawStringGradient over VG-Lite. See vg_drawing.h
+ * @brief Implementation of drawStringGradient over VGLite. See vg_drawing.h
  */
 DRAWING_Status VG_DRAWING_VGLITE_drawStringGradient(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jfloat x, jfloat y,  jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jint *gradientData, jfloat *gradientMatrix);
 
 /*
- * @brief Implementation of drawStringOnCircle over VG-Lite. See vg_drawing.h
+ * @brief Implementation of drawStringOnCircle over VGLite. See vg_drawing.h
  */
 DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircle(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jint x, jint y, jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jfloat radius, jint direction);
 
 /*
- * @brief Implementation of drawStringOnCircleGradient over VG-Lite. See vg_drawing.h
+ * @brief Implementation of drawStringOnCircleGradient over VGLite. See vg_drawing.h
  */
 DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircleGradient(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jint x, jint y, jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jfloat radius, jint direction, jint *gradientData, jfloat *gradientMatrix);
 
 /*
- * @brief Implementation of drawImage over VG-Lite. See ui_drawing.h
+ * @brief Implementation of drawImage over VGLite. See ui_drawing.h
  */
 DRAWING_Status VG_DRAWING_VGLITE_drawImage(MICROUI_GraphicsContext* gc, void* image, jfloat *matrix, jint alpha, jlong elapsed, const float color_matrix[], jint* errno);
 

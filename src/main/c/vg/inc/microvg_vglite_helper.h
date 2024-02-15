@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022-2023 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2024 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -11,9 +11,9 @@
 /**
 * @file
 * @brief MicroVG library low level API. Provides helper defines and functions to
-* manipulates the VG-Lite objects.
+* manipulates the VGLite objects.
 * @author MicroEJ Developer Team
-* @version 6.1.1
+* @version 7.0.0
 */
 
 #if defined __cplusplus
@@ -77,35 +77,35 @@ static inline void MICROVG_VGLITE_handle_error(MICROUI_GraphicsContext* gc, jint
 // -----------------------------------------------------------------------------
 
 /*
- * @brief Converts the MicroVG blend in a VG-Lite blend.
+ * @brief Converts the MicroVG blend in a VGLite blend.
  *
  * @param[in] blend: the drawing's blending
  *
- * @return the VG-Lite blend
+ * @return the VGLite blend
  */
 vg_lite_blend_t MICROVG_VGLITE_HELPER_get_blend(jint blend);
 
 /*
- * @brief Converts the MicroVG fill rule in a VG-Lite rule.
+ * @brief Converts the MicroVG fill rule in a VGLite rule.
  *
  * @param[in] blend: the drawing's fill rule
  *
- * @return the VG-Lite fill rule
+ * @return the VGLite fill rule
  */
 vg_lite_fill_t MICROVG_VGLITE_HELPER_get_fill_rule(jint fill_type);
 
 /*
- * @brief Converts a MicroVG LinearGradient in a VG-Lite gradient according to
+ * @brief Converts a MicroVG LinearGradient in a VGLite gradient according to
  * the drawing parameters. After this call, the gradient is ready to be updated
  * by calling vg_lite_update_grad()
  *
- * @param[in] gradient: the gradient destination (VG-Lite gradient)
+ * @param[in] gradient: the gradient destination (VGLite gradient)
  * @param[in] gradientData: the gradient source
  * @param[in] matrix: the gradient source's matrix
  * @param[in] globalMatrix: the drawing's matrix
  * @param[in] globalAlpha: the drawing's opacity
  *
- * @return a VG-Lite error code
+ * @return a VGLite error code
  */
 vg_lite_error_t MICROVG_VGLITE_HELPER_to_vg_lite_gradient(vg_lite_linear_gradient_t* gradient, jint* gradientData, jfloat* matrix, jfloat* globalMatrix, jint globalAlpha);
 

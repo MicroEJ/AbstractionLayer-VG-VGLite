@@ -1,14 +1,14 @@
 /*
  * C
  *
- * Copyright 2021-2023 MicroEJ Corp. All rights reserved.
-Use of this source code is governed by a BSD-style license that can be found with this software.
+ * Copyright 2021-2024 MicroEJ Corp. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
 /**
  * @file
  * @brief Implementation of a set of vg_drawing.h drawing functions (library MicroVG).
- * These are implementations over VG-Lite and the destination buffer format is the format specified
+ * These are implementations over VGLite and the destination buffer format is the format specified
  * in the VEE port.
  *
  * This file redirects the drawings of the strings and the images to some third-party files.
@@ -17,7 +17,7 @@ Use of this source code is governed by a BSD-style license that can be found wit
  * MicroUI BufferedImage).
  *
  * @author MicroEJ Developer Team
- * @version 6.1.1
+ * @version 7.0.0
  */
 
 // -----------------------------------------------------------------------------
@@ -45,7 +45,7 @@ Use of this source code is governed by a BSD-style license that can be found wit
 #endif
 
 /*
- * @brief Specific error code when VG-Lite library throws an error.
+ * @brief Specific error code when VGLite library throws an error.
  */
 #define RET_ERROR_VGLITE -1
 
@@ -132,7 +132,7 @@ static void _update_gradient(vg_lite_linear_gradient_t* gradient, vg_lite_blend_
 		}
 	}
 
-	// update the VG-Lite internal image that represents the gradient
+	// update the VGLite internal image that represents the gradient
 	(void)vg_lite_update_grad(gradient); // always success
 }
 
