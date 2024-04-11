@@ -13,7 +13,7 @@
 * @brief MicroVG library low level API. Provides helper defines and functions to
 * manipulates the VGLite objects.
 * @author MicroEJ Developer Team
-* @version 7.0.0
+* @version 7.0.1
 */
 
 #if defined __cplusplus

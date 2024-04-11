@@ -9,7 +9,7 @@
 * @file
 * @brief Freetype vglite renderer
 * @author MicroEJ Developer Team
-* @version 7.0.0
+* @version 7.0.1
 */
 
 #ifndef FTVECTOR_H

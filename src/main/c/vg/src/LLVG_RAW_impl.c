@@ -10,7 +10,7 @@
  * @brief MicroEJ MicroVG library low level API: image management.This file draws an
  * image and can fill a BufferedVectorImage.
  * @author MicroEJ Developer Team
- * @version 7.0.0
+ * @version 7.0.1
  */
 
 // -----------------------------------------------------------------------------
@@ -410,6 +410,7 @@ struct vg_block_bvi_image {
 
 	vector_image_t* image;
 	jfloat matrix[9];
+	int32_t scissor[4];
 	jfloat color_matrix[COLOR_MATRIX_SIZE];
 	jint elapsed_msb; // prevent unalignment access
 	jint elapsed_lsb;
@@ -1641,6 +1642,17 @@ static inline jint _bvi_link_operations(vector_buffered_image_t* raw, vg_block_t
 	return ret;
 }
 
+static void _bvi_save_current_vglite_scissor(int32_t* dest) {
+	int32_t* scissor;
+	if (0u != vg_lite_get_scissor(&scissor)) {
+		(void)memcpy((void*)dest, (void*)scissor, 4u * sizeof(int32_t));
+	}
+	else {
+		// no clip: -1 is not a valid X clip value
+		dest[0] = -1;
+	}
+}
+
 static inline vector_buffered_image_t* _bvi_get_bvi_from_target(void* target) {
 	// cppcheck-suppress [misra-c2012-11.5] cast is possible (the target stored in drawer is a vector_buffered_image_t* for sure)
 	return (vector_buffered_image_t*)target;
@@ -1665,6 +1677,7 @@ static jint _bvi_add_draw_raw_image(
 		op->alpha = (jchar)alpha;
 		op->image = source;
 		(void)memcpy((void*)&(op->matrix), (void*)matrix, (size_t)LLVG_MATRIX_SIZE * sizeof(jfloat));
+		_bvi_save_current_vglite_scissor(op->scissor);
 		if (NULL != color_matrix) {
 			// required size is checked by Java library
 			(void)memcpy((void*)&(op->color_matrix), color_matrix, (size_t)COLOR_MATRIX_SIZE * sizeof(jfloat));
@@ -1696,17 +1709,6 @@ static jint _bvi_add_image_element(vg_lite_path_t * path, vg_lite_fill_t fill_ru
 		ret = BVI_VGLITE_add_draw_gradient(bvi_target, path, fill_rule, matrix, grad, blend);
 	}
 	return ret;
-}
-
-static void _save_current_vglite_scissor(int32_t* dest) {
-	int32_t* scissor;
-	if (0u != vg_lite_get_scissor(&scissor)) {
-		(void)memcpy((void*)dest, (void*)scissor, 4u * sizeof(int32_t));
-	}
-	else {
-		// no clip: -1 is not a valid X clip value
-		dest[0] = -1;
-	}
 }
 
 /*
@@ -2175,35 +2177,38 @@ static jint _draw_raw_image(vg_drawing_t* drawing_data, VG_DRAWING_VGLITE_draw_i
 			// cppcheck-suppress [misra-c2012-11.3] block is a vg_block_bvi_image_t for sure
 			vg_block_bvi_image_t* op = (vg_block_bvi_image_t*)block;
 
-			_get_image_parameters(op->image, &raw_in_bvi_drawing_data);
+			if (_bvi_apply_scissor(op->scissor, &(p_render_transformation->matrix), &p_current_scissor)) {
 
-			// retrieve elapsed time
-			jlong elapsedTime_msb = op->elapsed_msb;
-			jlong elapsedTime_lsb = op->elapsed_lsb;
-			elapsedTime_msb <<= 32;
-			elapsedTime_lsb &= 0xfffffffful;
-			jlong raw_elapsed_time = (elapsedTime_msb | elapsedTime_lsb);
+				_get_image_parameters(op->image, &raw_in_bvi_drawing_data);
 
-			// merge operation's color matrix with global color matrix
-			float* image_color_matrix = (1u == op->flags) ? (float*)op->color_matrix : NULL;
-			// cppcheck-suppress [misra-c2012-11.8] allow cast to float*
-			image_color_matrix = _combine_color_matrices(image_color_matrix, (float*)color_matrix);
+				// retrieve elapsed time
+				jlong elapsedTime_msb = op->elapsed_msb;
+				jlong elapsedTime_lsb = op->elapsed_lsb;
+				elapsedTime_msb <<= 32;
+				elapsedTime_lsb &= 0xfffffffful;
+				jlong raw_elapsed_time = (elapsedTime_msb | elapsedTime_lsb);
 
-			// merge operation's alpha with global alpha
-			uint32_t image_alpha = op->alpha;
-			image_alpha *= alpha;
-			image_alpha /= 255;
+				// merge operation's color matrix with global color matrix
+				float* image_color_matrix = (1u == op->flags) ? (float*)op->color_matrix : NULL;
+				// cppcheck-suppress [misra-c2012-11.8] allow cast to float*
+				image_color_matrix = _combine_color_matrices(image_color_matrix, (float*)color_matrix);
 
-			// concatenate first transformation with new operation transformation
-			vg_lite_matrix_t temp;
-			LLVG_MATRIX_IMPL_multiply(MAP_VGLITE_MATRIX(&temp), MAP_VGLITE_MATRIX(&(p_render_transformation->matrix)), MAP_VGLITE_MATRIX(&(op->matrix)));
+				// merge operation's alpha with global alpha
+				uint32_t image_alpha = op->alpha;
+				image_alpha *= alpha;
+				image_alpha /= 255;
 
-			// cppcheck-suppress [misra-c2012-17.2] only one level of recursion
-			jint error = _draw_raw_image(&raw_in_bvi_drawing_data, target, MAP_VGLITE_MATRIX(&temp), image_alpha, raw_elapsed_time, image_color_matrix);
-			if (LLVG_SUCCESS != error) {
-				ret = error;
+				// concatenate first transformation with new operation transformation
+				vg_lite_matrix_t temp;
+				LLVG_MATRIX_IMPL_multiply(MAP_VGLITE_MATRIX(&temp), MAP_VGLITE_MATRIX(&(p_render_transformation->matrix)), MAP_VGLITE_MATRIX(&(op->matrix)));
+
+				// cppcheck-suppress [misra-c2012-17.2] only one level of recursion
+				jint error = _draw_raw_image(&raw_in_bvi_drawing_data, target, MAP_VGLITE_MATRIX(&temp), image_alpha, raw_elapsed_time, image_color_matrix);
+				if (LLVG_SUCCESS != error) {
+					ret = error;
+				}
+				drawing_data->drawing_running |= raw_in_bvi_drawing_data.drawing_running;
 			}
-			drawing_data->drawing_running |= raw_in_bvi_drawing_data.drawing_running;
 
 			block = op->next;
 		}
@@ -2498,7 +2503,7 @@ jint BVI_VGLITE_add_draw_path(
 		op->header.path.blend = blend;
 		op->header.path.desc = _bvi_store_vglite_path(path);
 		op->header.color = (uint32_t)color;
-		_save_current_vglite_scissor(op->scissor);
+		_bvi_save_current_vglite_scissor(op->scissor);
 		(void)memcpy((void*)&(op->path_deformation), (void*)matrix, sizeof(vg_lite_matrix_t));
 
 		// cppcheck-suppress [misra-c2012-11.3] operation is a vg_block_t
@@ -2540,7 +2545,7 @@ jint BVI_VGLITE_add_draw_gradient(
 			image->last_stored_gradient = op->header.gradient;
 		}
 
-		_save_current_vglite_scissor(op->scissor);
+		_bvi_save_current_vglite_scissor(op->scissor);
 		(void)memcpy((void*)&(op->path_deformation), (void*)matrix, sizeof(vg_lite_matrix_t));
 
 		// cppcheck-suppress [misra-c2012-11.3] operation is a vg_block_t
