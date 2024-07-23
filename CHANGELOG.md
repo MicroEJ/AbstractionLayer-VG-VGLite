@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.1] - 2024-07-23
+
+### Changed
+
+- Fetch the dependency CCO MicroVG 6.0.1.
+
+## [8.0.0] - 2024-07-19
+
+### Changed
+
+  - Anonymize the use of the Freetype library.
+  - Change the signature of all drawing functions: remove the parameters `x` and `y` (not backward compatible).
+  - Install the files in the `vg_vglite` directory.
+  - Increase the dependencies:
+    - CCO MicroUI over VGlite 9.0.0.
+    - CCO MicroVG 6.0.0.
+    - CCO Freetype 3.0.0.
+  - Change the file structure:
+    - Rename `bvi_vglite.h` to `vg_bvi_vglite.h`.
+    - Rename `microvg_vglite_helper.h` to `vg_vglite_helper.h`.
+    - Rename `LLVG_RAW_impl.c` to `vg_drawing_vglite_image.c`.
+    - Rename `LLVG_vglite.c` to `LLVG_impl_vglite.c`.
+    - Remove `LLVG_FONT_PAINTER_freetype_vglite.c`.
+    - Add `LLVG_GRADIENT_impl_vglite.c`.
+    - Add `vg_drawing_bvi.c`.
+    - Add `vg_path_vglite.c`.
+    - Add `vg_vglite_helper.c`.
+  - Rename functions:
+    - `BVI_VGLITE_initialize` becomes `VG_BVI_VGLITE_initialize`.
+    - `BVI_VGLITE_adjust_new_image_characteristics` becomes `VG_BVI_VGLITE_adjust_new_image_characteristics`.
+    - `BVI_VGLITE_initialize_new_image` becomes `VG_BVI_VGLITE_initialize_new_image`.
+    - `BVI_VGLITE_free_resources` becomes `VG_BVI_VGLITE_free_resources`.
+    - `BVI_VGLITE_add_draw_path` becomes `VG_BVI_VGLITE_add_draw_path`.
+    - `BVI_VGLITE_add_draw_gradient` becomes `VG_BVI_VGLITE_add_draw_gradient`.
+    - `BVI_VGLITE_add_draw_image` becomes `VG_BVI_VGLITE_add_draw_image`.
+    - `MICROVG_VGLITE_report_error` becomes `VG_VGLITE_HELPER_report_error`.
+    - `MICROVG_VGLITE_handle_error` becomes `VG_VGLITE_HELPER_handle_error`.
+    - `MICROVG_VGLITE_HELPER_get_blend` becomes `VG_VGLITE_HELPER_get_blend`.
+    - `MICROVG_VGLITE_HELPER_get_fill_rule` becomes `VG_VGLITE_HELPER_get_fill_rule`.
+    - `MICROVG_VGLITE_HELPER_get_microvg_blend` becomes `VG_VGLITE_HELPER_get_microvg_blend`.
+    - `MICROVG_VGLITE_HELPER_get_microvg_fill_rule` becomes `VG_VGLITE_HELPER_get_microvg_fill_rule`.
+    - `MICROVG_VGLITE_HELPER_to_vg_lite_gradient` becomes `VG_VGLITE_HELPER_to_vg_lite_gradient`.
+
+### Removed
+
+  - Remove `VG_DRAWING_VGLITE_prepare_matrix()` (use generic function `VG_HELPER_prepare_matrix()` instead).
+  - Remove the VGLite specific function to draw a string with Freetype: `VG_DRAWING_VGLITE_draw_string()` and its associated typedef `VG_DRAWING_VGLITE_draw_glyph_t`.
+  - Remove the specific `drawString` painter over Freetype with VGLite backend (use the generic painter instead).
+
 ## [7.0.1] - 2024-04-11
 
 ### Fixed
@@ -24,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   - Fix the release of the BVI resources.
   - Fix the storing of color matrices in the BVI.
-  
+
 ## [6.1.1] - 2023-11-13
 
 - Compatible with MicroEJ VG Pack 1.4.2.
@@ -37,7 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   - Fix dynamic paths larger than 64 KB.
   - Fix some comments.
-  - Fix the dynamic path drawing on RT1170 (use the same quality of paths as vector images). 
+  - Fix the dynamic path drawing on RT1170 (use the same quality of paths as vector images).
   - Fix the path drawing on RT1170 (disable the color pre-multiplication).
   - Fix the rendering of some blending modes on RT1170 by disabling the GPU pre-multiplication when required.
 
@@ -69,7 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   - Fix the SystemView log identifiers.
   - Remove the include of the unknown header file `trace_vglite.h` (require a re-build of FreeType library).
-  
+
 ## [5.0.1] - 2023-06-08
 
 ### Fixed
@@ -104,8 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
   - Fix the path to render during a "path data" animation:
-  	- when at least one animation is applied: the command buffer length and the path bounding box can be different than the original path, 
-  	- when no animation is applied: the original path must be drawn. 
+  	- when at least one animation is applied: the command buffer length and the path bounding box can be different than the original path,
+  	- when no animation is applied: the original path must be drawn.
 
 ## [4.0.3] - 2023-02-03
 
@@ -142,12 +191,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduce the gradient footprint in BufferedVectorImage.
   - Harmonize the use of `vg_drawer.h` functions (instead of `VG_DRAWER_drawer_t` functions) in BufferedVectorImage.
   - Use the VGLite API to initialize the VGLite paths.
-  - Use the global fields "VGLite paths" instead of functions fields (prevent dynamic allocation on task stack). 
+  - Use the global fields "VGLite paths" instead of functions fields (prevent dynamic allocation on task stack).
 
 ### Fixed
 
-  - Fix the drawing of a text in a BufferedVectorImage: do not wakeup the GPU. 
-  - Fix the constants used in `get_command_parameter_number` function (no side-effect).  
+  - Fix the drawing of a text in a BufferedVectorImage: do not wakeup the GPU.
+  - Fix the constants used in `get_command_parameter_number` function (no side-effect).
 
 ## [3.0.2] - 2022-09-09
 
@@ -168,22 +217,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
   - Add the buffered vector image feature (BVI).
- 
-### Changed 
+
+### Changed
 
   - Make the CCO compatible with VG pack 1.1.0 and higher.
   - Manage the closed fonts.
   - Configure freetype CCO from `microvg_configuration.h` header file.
   - Move `ftvglite.c` and `ftvglite.h` to freetype CCO.
-  - Extract text layout to microvg CCO.  
+  - Extract text layout to microvg CCO.
   - Get fill rule configuration from each glyph `FT_Outline->flags` instead of defaulting it to `VG_LITE_FILL_EVEN_ODD`.
   - Use the MicroUI over VGLite's Vectorial Drawer mechanism.
   - Join character bboxes at baseline for drawStringOnCircle.
-  
+
 ### Fixed
-  
+
   - Fix performance issues in drawString.
-  
+
 ## [2.0.0] - 2022-05-13
 
 ### Changed
@@ -198,7 +247,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Initial revision based on `com.microej.clibrary.llimpl#vector-font-vglite#1.0.0`.
   - Add UTF16 characters parsing in `LLVG_FONT_PAINTER_IMPL_draw_string()` and `LLVG_FONT_PAINTER_IMPL_draw_string_on_circle()`.
   - Add support of multilayers glyphs, colored emoji.
- 
+
 ---
-_Copyright 2021-2024 MicroEJ Corp. All rights reserved._  
-_Use of this source code is governed by a BSD-style license that can be found with this software._  
+_Copyright 2021-2024 MicroEJ Corp. All rights reserved._
+_Use of this source code is governed by a BSD-style license that can be found with this software._

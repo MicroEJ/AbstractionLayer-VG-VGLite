@@ -11,17 +11,17 @@
  * (in VGLite internal format).
  *
  * @author MicroEJ Developer Team
- * @version 7.0.1
+ * @version 8.0.1
  */
 
-#if !defined BVI_VGLITE_H
-#define BVI_VGLITE_H
+#if !defined VG_BVI_VGLITE_H
+#define VG_BVI_VGLITE_H
 
 #if defined __cplusplus
 extern "C" {
 #endif
 
-#include "microvg_configuration.h"
+#include "vg_configuration.h"
 #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
 
 // -----------------------------------------------------------------------------
@@ -37,25 +37,32 @@ extern "C" {
 // --------------------------------------------------------------------------------
 
 /*
+ * @brief Initializes the engine that implements the MicroVG BufferedVectorImage feature
+ * over the VGLite GPU.
+ */
+void VG_BVI_VGLITE_initialize(void);
+
+/*
  * @brief Adjusts the image data size to store the implementation of the BufferedVectorImage.
  *
  * @see See ui_drawing.h
  */
-void BVI_VGLITE_adjust_new_image_characteristics(uint32_t width, uint32_t height, uint32_t* data_size, uint32_t* data_alignment) ;
+void VG_BVI_VGLITE_adjust_new_image_characteristics(uint32_t width, uint32_t height, uint32_t *data_size,
+                                                    uint32_t *data_alignment);
 
 /*
  * @brief Initializes the BufferedVectorImage.
  *
  * @see See ui_drawing.h
  */
-void BVI_VGLITE_initialize_new_image(MICROUI_Image* image);
+void VG_BVI_VGLITE_initialize_new_image(MICROUI_Image *image);
 
 /*
  * @brief Closes the BufferedVectorImage's resources.
  *
  * @see See ui_drawing.h
  */
-void BVI_VGLITE_free_resources(MICROUI_Image* image);
+void VG_BVI_VGLITE_free_resources(MICROUI_Image *image);
 
 /*
  * @brief Adds an operation "draw path with a color" in the BufferedVectorImage.
@@ -66,13 +73,12 @@ void BVI_VGLITE_free_resources(MICROUI_Image* image);
  *
  * @see vg_lite_draw()
  */
-jint BVI_VGLITE_add_draw_path(
-		void* target,
-		vg_lite_path_t * path,
-		vg_lite_fill_t fill_rule,
-		vg_lite_matrix_t * matrix,
-		vg_lite_blend_t blend,
-		vg_lite_color_t color);
+jint VG_BVI_VGLITE_add_draw_path(void *target,
+                                 const vg_lite_path_t *path,
+                                 vg_lite_fill_t fill_rule,
+                                 const vg_lite_matrix_t *matrix,
+                                 vg_lite_blend_t blend,
+                                 vg_lite_color_t color);
 
 /*
  * @brief Adds an operation "draw path with a gradient" in the BufferedVectorImage.
@@ -83,13 +89,12 @@ jint BVI_VGLITE_add_draw_path(
  *
  * @see vg_lite_draw_gradient()
  */
-jint BVI_VGLITE_add_draw_gradient(
-		void* target,
-		vg_lite_path_t * path,
-		vg_lite_fill_t fill_rule,
-		vg_lite_matrix_t * matrix,
-		vg_lite_linear_gradient_t * grad,
-		vg_lite_blend_t blend) ;
+jint VG_BVI_VGLITE_add_draw_gradient(void *target,
+                                     const vg_lite_path_t *path,
+                                     vg_lite_fill_t fill_rule,
+                                     const vg_lite_matrix_t *matrix,
+                                     const vg_lite_linear_gradient_t *grad,
+                                     vg_lite_blend_t blend);
 
 /*
  * @brief Adds an operation "draw VG image" in the BufferedVectorImage. If the image
@@ -102,13 +107,12 @@ jint BVI_VGLITE_add_draw_gradient(
  *
  * @see vg_drawing.h
  */
-jint BVI_VGLITE_add_draw_image(
-		void* target,
-		void* image,
-		jfloat* drawing_matrix,
-		jint alpha,
-		jlong elapsed,
-		const float color_matrix[]);
+jint VG_BVI_VGLITE_add_draw_image(void *target,
+                                  const MICROVG_Image *image,
+                                  const jfloat *drawing_matrix,
+                                  jint alpha,
+                                  jlong elapsed,
+                                  const float color_matrix[]);
 
 // -----------------------------------------------------------------------------
 // EOF
@@ -119,4 +123,4 @@ jint BVI_VGLITE_add_draw_image(
 #ifdef __cplusplus
 }
 #endif
-#endif // !defined BVI_VGLITE_H
+#endif // !defined VG_BVI_VGLITE_H

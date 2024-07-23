@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
@@ -13,10 +13,9 @@ extern "C" {
  * @file
  * @brief Implementation of a set of vg_drawing.h drawing functions (library MicroVG).
  * These are implementations over VGLite and the destination buffer format is the
- * format specified in the VEE port. When the drawing cannot be performed by the GPU,
- * the software implementation is used insted.
+ * format specified in the VEE port.
  * @author MicroEJ Developer Team
- * @version 7.0.1
+ * @version 8.0.1
  * @see ui_drawing_vglite.h
  */
 
@@ -25,7 +24,8 @@ extern "C" {
 // --------------------------------------------------------------------------------
 
 #include "vg_drawing.h"
-#include "microvg_path.h"
+#include "vg_path.h"
+#include "vg_freetype.h"
 
 #include "vg_lite.h"
 
@@ -75,26 +75,6 @@ extern "C" {
 // --------------------------------------------------------------------------------
 
 /*
- * @brief Function to draw a character element: a glyph. A glyph is a vectorial path
- * and the function parameters are similar to vg_lite_draw() and vg_lite_draw_gradient().
- *
- * @param[in] color the color to apply if gradient is NULL
- * @param[in] gradient the gradient to apply or NULL
- *
- * @see vg_lite_draw()
- * @see vg_lite_draw_gradient()
- *
- * @return: the MicroVG error code
- */
-typedef jint (* VG_DRAWING_VGLITE_draw_glyph_t) (
-		vg_lite_path_t * path,
-		vg_lite_fill_t fill_rule,
-		vg_lite_matrix_t * matrix,
-		vg_lite_blend_t blend,
-		vg_lite_color_t color,
-		vg_lite_linear_gradient_t* grad);
-
-/*
  * @brief Function to draw an image element. An image element is a vectorial path
  * and the function parameters are similar to vg_lite_draw() and vg_lite_draw_gradient().
  *
@@ -107,40 +87,40 @@ typedef jint (* VG_DRAWING_VGLITE_draw_glyph_t) (
  *
  * @return: the MicroVG error code
  */
-typedef jint (* VG_DRAWING_VGLITE_draw_image_element_t) (
-		vg_lite_path_t * path,
-		vg_lite_fill_t fill_rule,
-		vg_lite_matrix_t * matrix,
-		vg_lite_blend_t blend,
-		vg_lite_color_t color,
-		vg_lite_linear_gradient_t* grad,
-		bool is_new_gradient);
+typedef jint (* VG_DRAWING_VGLITE_draw_image_element_t) (const vg_lite_path_t *path,
+                                                         vg_lite_fill_t fill_rule,
+                                                         const vg_lite_matrix_t *matrix,
+                                                         vg_lite_blend_t blend,
+                                                         vg_lite_color_t color,
+                                                         vg_lite_linear_gradient_t *shared_gradient,
+                                                         bool is_new_gradient);
+
+// --------------------------------------------------------------------------------
+// Global variables
+// --------------------------------------------------------------------------------
+
+/*
+ * @brief Working variable used to render paths
+ */
+extern vg_lite_path_t render_path;
 
 // --------------------------------------------------------------------------------
 // Public API
 // --------------------------------------------------------------------------------
 
 /*
- * @brief Converts a MicroVG matrix in a VGLite matrix applying a translation.
- *
- * @param[out] vg_lite_matrix the VGLite matrix to set
- * @param[in] x the X translation to apply
- * @param[in] y the Y translation to apply
- * @param[in] matrix the MicroVG transformation to apply
- */
-void VG_DRAWING_VGLITE_prepare_matrix(vg_lite_matrix_t* vg_lite_matrix, jfloat x, jfloat y, jfloat* matrix) ;
-
-/*
  * @brief Converts a MicroVG LinearGradient in a VGLite gradient according to
  * the drawing parameters. After this call, the gradient is ready to be updated
  * by calling vg_lite_update_grad().
  *
- * This function is similar to MICROVG_VGLITE_HELPER_to_vg_lite_gradient() but
+ * This function is similar to VG_VGLITE_HELPER_to_vg_lite_gradient() but
  * the gradientMatrix may be NULL (identity matrix is used instead).
  *
- * @see MICROVG_VGLITE_HELPER_to_vg_lite_gradient()
+ * @see VG_VGLITE_HELPER_to_vg_lite_gradient()
  */
-vg_lite_error_t VG_DRAWING_VGLITE_prepare_gradient(vg_lite_linear_gradient_t* vg_lite_gradient, jint* gradientData, jfloat* gradientMatrix, vg_lite_matrix_t* vg_lite_matrix, int alpha) ;
+vg_lite_error_t VG_DRAWING_VGLITE_prepare_gradient(vg_lite_linear_gradient_t *vg_lite_gradient,
+                                                   const jint *gradient_data, const jfloat *gradient_matrix,
+                                                   const jfloat *global_matrix, int alpha);
 
 /*
  * @brief Clears the VGLite gradient data: vg_lite_init_grad() allocates a buffer
@@ -148,7 +128,7 @@ vg_lite_error_t VG_DRAWING_VGLITE_prepare_gradient(vg_lite_linear_gradient_t* vg
  *
  * @param[in] gradient the VGLite gradient to clear
  */
-void VG_DRAWING_VGLITE_clear_gradient(vg_lite_linear_gradient_t* gradient) ;
+void VG_DRAWING_VGLITE_clear_gradient(vg_lite_linear_gradient_t *gradient);
 
 /*
  * @brief Converts a MicroVG path in a VGLite path. The same VGLite path is returned, by
@@ -158,29 +138,7 @@ void VG_DRAWING_VGLITE_clear_gradient(vg_lite_linear_gradient_t* gradient) ;
  *
  * @return the VGLite path
  */
-vg_lite_path_t* VG_DRAWING_VGLITE_to_vglite_path(MICROVG_PATH_HEADER_t* path);
-
-/*
- * @brief Generic function to prepare the drawing of a string along a line or a circle,
- * with a color or a linear gradient. The implementation does not draw, it calls the
- * drawer function for each glyph.
- *
- * @param[in] drawer the function to draw a glyph.
- * @param[in] text the array of characters to draw.
- * @param[in] faceHandle the font reference handle.
- * @param[in] size the height of the font in pixels.
- * @param[in] vgGlobalMatrix: deformation matrix
- * @param[in] blend the blend mode to use
- * @param[in] color the color to apply if gradient is NULL
- * @param[in] gradient the gradient to apply or NULL
- * @param[in] letterSpacing the extra letter spacing to use
- * @param[in] radius the radius of the circle (0 to draw along a line)
- * @param[in] direction the direction of the text along the circle (0 to draw along a line)
- * @param[out] rendered true if something has been drawn
- *
- * @return LLVG_SUCCESS if something has been drawn, an different value otherwise
- */
-jint VG_DRAWING_VGLITE_draw_string(VG_DRAWING_VGLITE_draw_glyph_t drawer, jchar* text, jint faceHandle, jfloat size,  vg_lite_matrix_t* vgGlobalMatrix, vg_lite_blend_t blend, int color, vg_lite_linear_gradient_t *gradient, jfloat letterSpacing, jfloat radius, jint direction, bool* rendered);
+vg_lite_path_t * VG_DRAWING_VGLITE_to_vglite_path(VG_PATH_HEADER_t *path);
 
 /*
  * @brief Generic function to prepare the drawing of an image. The implementation does
@@ -196,7 +154,9 @@ jint VG_DRAWING_VGLITE_draw_string(VG_DRAWING_VGLITE_draw_glyph_t drawer, jchar*
  *
  * @return LLVG_SUCCESS on a success, a different value otherwise
  */
-jint VG_DRAWING_VGLITE_draw_image(VG_DRAWING_VGLITE_draw_image_element_t drawer, void* image, jfloat* drawing_matrix, jint alpha, jlong elapsed, const float color_matrix[], bool* rendered);
+jint VG_DRAWING_VGLITE_draw_image(VG_DRAWING_VGLITE_draw_image_element_t drawer, const MICROVG_Image *image,
+                                  const jfloat *drawing_matrix, jint alpha, jlong elapsed, const float color_matrix[],
+                                  bool *rendered);
 
 // --------------------------------------------------------------------------------
 // vg_drawing.h API
@@ -206,37 +166,52 @@ jint VG_DRAWING_VGLITE_draw_image(VG_DRAWING_VGLITE_draw_image_element_t drawer,
 /*
  * @brief Implementation of drawPath over VGLite. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_VGLITE_drawPath(MICROUI_GraphicsContext* gc, jbyte* path, jint x, jint y, jfloat* matrix, jint fillRule, jint blend, jint color);
+DRAWING_Status VG_DRAWING_VGLITE_drawPath(MICROUI_GraphicsContext *gc, const jbyte *path, const jfloat *matrix,
+                                          jint fillRule, jint blend, jint color);
 
 /*
  * @brief Implementation of drawGradient over VGLite. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_VGLITE_drawGradient(MICROUI_GraphicsContext* gc, jbyte* path, jint x, jint y, jfloat* matrix, jint fillRule, jint alpha, jint blend, jint* gradient, jfloat* gradientMatrix);
+DRAWING_Status VG_DRAWING_VGLITE_drawGradient(MICROUI_GraphicsContext *gc, const jbyte *path, const jfloat *matrix,
+                                              jint fillRule, jint alpha, jint blend, const jint *gradient,
+                                              const jfloat *gradientMatrix);
 
 /*
  * @brief Implementation of drawString over VGLite. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_VGLITE_drawString(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jfloat x, jfloat y,  jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing);
+DRAWING_Status VG_DRAWING_VGLITE_drawString(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
+                                            jfloat size, const jfloat *matrix, jint alpha, jint blend,
+                                            jfloat letterSpacing);
 
 /*
  * @brief Implementation of drawStringGradient over VGLite. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_VGLITE_drawStringGradient(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jfloat x, jfloat y,  jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jint *gradientData, jfloat *gradientMatrix);
+DRAWING_Status VG_DRAWING_VGLITE_drawStringGradient(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
+                                                    jfloat size, const jfloat *matrix, jint alpha, jint blend,
+                                                    jfloat letterSpacing, const jint *gradientData,
+                                                    const jfloat *gradientMatrix);
 
 /*
  * @brief Implementation of drawStringOnCircle over VGLite. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircle(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jint x, jint y, jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jfloat radius, jint direction);
+DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircle(MICROUI_GraphicsContext *gc, const jchar *text, jint faceHandle,
+                                                    jfloat size, const jfloat *matrix, jint alpha, jint blend,
+                                                    jfloat letterSpacing, jfloat radius, jint direction);
 
 /*
  * @brief Implementation of drawStringOnCircleGradient over VGLite. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircleGradient(MICROUI_GraphicsContext* gc, jchar* text, jint faceHandle, jfloat size,  jint x, jint y, jfloat* matrix, jint alpha, jint blend, jfloat letterSpacing, jfloat radius, jint direction, jint *gradientData, jfloat *gradientMatrix);
+DRAWING_Status VG_DRAWING_VGLITE_drawStringOnCircleGradient(MICROUI_GraphicsContext *gc, const jchar *text,
+                                                            jint faceHandle, jfloat size, const jfloat *matrix,
+                                                            jint alpha, jint blend, jfloat letterSpacing, jfloat radius,
+                                                            jint direction, const jint *gradientData,
+                                                            const jfloat *gradientMatrix);
 
 /*
- * @brief Implementation of drawImage over VGLite. See ui_drawing.h
+ * @brief Implementation of drawImage over VGLite. See vg_drawing.h
  */
-DRAWING_Status VG_DRAWING_VGLITE_drawImage(MICROUI_GraphicsContext* gc, void* image, jfloat *matrix, jint alpha, jlong elapsed, const float color_matrix[], jint* errno);
+DRAWING_Status VG_DRAWING_VGLITE_drawImage(MICROUI_GraphicsContext *gc, const void *image, const jfloat *matrix,
+                                           jint alpha, jlong elapsed, const float color_matrix[], jint *errno);
 
 // --------------------------------------------------------------------------------
 // EOF
