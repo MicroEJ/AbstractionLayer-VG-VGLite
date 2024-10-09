@@ -13,7 +13,7 @@
  * @brief MicroVG library low level API. Provides helper defines and functions to
  * manipulates the VGLite objects.
  * @author MicroEJ Developer Team
- * @version 8.0.1
+ * @version 9.0.0
  */
 
 #if defined __cplusplus
@@ -40,9 +40,8 @@ extern "C" {
  * @return the drawing status that should be return by the calling drawing function.
  */
 static inline DRAWING_Status VG_VGLITE_HELPER_report_error(MICROUI_GraphicsContext *gc, jint error) {
-	LLUI_DISPLAY_reportError(gc,
-	                         DRAWING_LOG_LIBRARY_INCIDENT | ((LLVG_OUT_OF_MEMORY ==
-	                                                          error) ? DRAWING_LOG_OUT_OF_MEMORY : 0));
+	LLUI_DISPLAY_reportError(gc, DRAWING_LOG_LIBRARY_INCIDENT | ((LLVG_OUT_OF_MEMORY ==
+	                                                              error) ? DRAWING_LOG_OUT_OF_MEMORY : 0));
 	return DRAWING_DONE;
 }
 

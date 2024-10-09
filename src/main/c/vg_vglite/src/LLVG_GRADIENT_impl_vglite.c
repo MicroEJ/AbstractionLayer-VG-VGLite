@@ -9,7 +9,7 @@
  * @file
  * @brief MicroVG library low level API over VGLite.
  * @author MicroEJ Developer Team
- * @version 8.0.1
+ * @version 9.0.0
  */
 
 // -----------------------------------------------------------------------------
