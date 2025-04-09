@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -11,7 +11,7 @@
  * (in VGLite internal format).
  *
  * @author MicroEJ Developer Team
- * @version 9.0.0
+ * @version 9.0.1
  */
 
 #if !defined VG_BVI_VGLITE_H

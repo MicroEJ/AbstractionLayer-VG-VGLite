@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.0.1] - 2025-04-09
+
+- Compatible with MicroEJ VG Pack 1.7.x.
+
+### Changed
+
+- Fetch the dependency CCO MicroVG 7.0.1.
+
+### Fixed
+
+- Fix the drawing of a BufferedVectorImage when applying a rotation.
+- Fix the drawing bounds of the BufferedVectorImage's elements.
+- Fix the drawing of gradient paths with zero or one color.
+- Fix the use of clip when drawing a buffered vector image that contains vector images.
+- Fix the clip when drawing a vector image in a buffered vector image.
+
+### Removed
+
+- Remove useless and invalid external field declaration.
+- Remove dependency to a specific version of Freetype: the C module Freetype must be fetched independently.
+
 ## [9.0.0] - 2024-10-09
 
 - Compatible with MicroEJ VG Pack 1.7.x.
@@ -261,5 +282,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add support of multilayers glyphs, colored emoji.
 
 ---
-_Copyright 2021-2024 MicroEJ Corp. All rights reserved._\
+_Copyright 2021-2025 MicroEJ Corp. All rights reserved._\
 _Use of this source code is governed by a BSD-style license that can be found with this software._

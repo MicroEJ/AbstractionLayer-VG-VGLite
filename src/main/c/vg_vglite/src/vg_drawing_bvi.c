@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -17,7 +17,7 @@
  * drawing function is specified by vg_drawing_bvi.c to target BufferedVectorImage buffer.
  *
  * @author MicroEJ Developer Team
- * @version 9.0.0
+ * @version 9.0.1
  * @see vg_drawing_vglite.c
  * @see ui_drawing_bvi.c
  */
@@ -217,11 +217,7 @@ DRAWING_Status VG_DRAWING_BVI_drawStringOnCircleGradient(MICROUI_GraphicsContext
 
 DRAWING_Status VG_DRAWING_BVI_drawImage(MICROUI_GraphicsContext *gc, const void *image, const jfloat *matrix,
                                         jint alpha, jlong elapsed, const float color_matrix[], jint *errno) {
-	float width;
-	float height;
-	VG_DRAWING_get_image_size(image, &width, &height);
-
-	if (UI_VGLITE_enable_vg_lite_scissor_area(gc, width, height, matrix)) {
+	if (UI_VGLITE_enable_vg_lite_scissor(gc)) {
 		*errno = VG_BVI_VGLITE_add_draw_image(MAP_BVI_ON_GC(gc), image, matrix, alpha, elapsed, color_matrix);
 		VG_VGLITE_HELPER_handle_error(gc, *errno);
 	}

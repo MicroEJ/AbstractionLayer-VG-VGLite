@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -10,7 +10,7 @@
  * @brief MicroEJ MicroVG library low level API: image management. This file draws an
  * image and can fill a BufferedVectorImage.
  * @author MicroEJ Developer Team
- * @version 9.0.0
+ * @version 9.0.1
  */
 
 // -----------------------------------------------------------------------------
@@ -37,6 +37,8 @@
 #include "vg_lite.h"
 #include "vg_lite_kernel.h"
 #include "fsl_debug_console.h"
+
+#include "mej_math.h"
 
 // -----------------------------------------------------------------------------
 // Macros and Defines
@@ -1759,38 +1761,50 @@ static bool _bvi_apply_scissor(const int32_t *scissor, const vg_transformation_m
 	bool draw = true;
 
 	if (scissor[0] >= 0) {
-		vg_lite_point_t top_left;
-		vg_lite_point_t bottom_right;
+		vg_lite_point_t x0y0;
+		vg_lite_point_t x0y1;
+		vg_lite_point_t x1y0;
+		vg_lite_point_t x1y1;
 
-		// get the top-left and bottom-right scissor points adjusted with the given matrix.
-		_bvi_transform_point(&top_left, (vg_lite_float_t)scissor[0], (vg_lite_float_t)scissor[1], matrix);
-		_bvi_transform_point(&bottom_right, (vg_lite_float_t)(scissor[0] + scissor[2] - 1),
-		                     (vg_lite_float_t)(scissor[1] + scissor[3] - 1), matrix);
+		int32_t x0 = scissor[0];
+		int32_t y0 = scissor[1];
+		int32_t x1 = scissor[0] + scissor[2] - 1;
+		int32_t y1 = scissor[1] + scissor[3] - 1;
+
+		// get the scissor points adjusted with the given matrix.
+		_bvi_transform_point(&x0y0, (vg_lite_float_t)(x0 + 0.5f), (vg_lite_float_t)(y0 + 0.5f), matrix);
+		_bvi_transform_point(&x1y0, (vg_lite_float_t)(x1 + 0.5f), (vg_lite_float_t)(y0 + 0.5f), matrix);
+		_bvi_transform_point(&x0y1, (vg_lite_float_t)(x0 + 0.5f), (vg_lite_float_t)(y1 + 0.5f), matrix);
+		_bvi_transform_point(&x1y1, (vg_lite_float_t)(x1 + 0.5f), (vg_lite_float_t)(y1 + 0.5f), matrix);
+
+		x0 = (int32_t)MEJ_MIN(x0y0.x, MEJ_MIN(x1y0.x, MEJ_MIN(x0y1.x, x1y1.x)));
+		y0 = (int32_t)MEJ_MIN(x0y0.y, MEJ_MIN(x1y0.y, MEJ_MIN(x0y1.y, x1y1.y)));
+		x1 = (int32_t)MEJ_MAX(x0y0.x, MEJ_MAX(x1y0.x, MEJ_MAX(x0y1.x, x1y1.x)));
+		y1 = (int32_t)MEJ_MAX(x0y0.y, MEJ_MAX(x1y0.y, MEJ_MAX(x0y1.y, x1y1.y)));
 
 		if ((*current_scissor) != NULL) {
-			int32_t cx1 = (*current_scissor)[0];
-			int32_t cy1 = (*current_scissor)[1];
-			int32_t cx2 = cx1 + (*current_scissor)[2] - 1;
-			int32_t cy2 = cy1 + (*current_scissor)[3] - 1;
+			int32_t cx0 = (*current_scissor)[0];
+			int32_t cy0 = (*current_scissor)[1];
+			int32_t cx1 = cx0 + (*current_scissor)[2] - 1;
+			int32_t cy1 = cy0 + (*current_scissor)[3] - 1;
 
-			if (top_left.x < cx1) {
-				top_left.x = cx1;
+			if (x0 < cx0) {
+				x0 = cx0;
 			}
-			if (top_left.y < cy1) {
-				top_left.y = cy1;
+			if (y0 < cy0) {
+				y0 = cy0;
 			}
-			if (bottom_right.x >= cx2) {
-				bottom_right.x = cx2;
+			if (x1 >= cx1) {
+				x1 = cx1;
 			}
-			if (bottom_right.y >= cy2) {
-				bottom_right.y = cy2;
+			if (y1 >= cy1) {
+				y1 = cy1;
 			}
 		}
 
-		if ((top_left.x <= bottom_right.x) && (top_left.y <= bottom_right.y)) {
+		if ((x0 <= x1) && (y0 <= y1)) {
 			vg_lite_enable_scissor();
-			vg_lite_set_scissor(top_left.x, top_left.y, bottom_right.x - top_left.x + 1,
-			                    bottom_right.y - top_left.y + 1);
+			vg_lite_set_scissor(x0, y0, x1 - x0 + 1, y1 - y0 + 1);
 			*current_scissor = NULL; // have to restore the clip
 		} else {
 			// empty clip: nothing to restore and nothing to draw
@@ -2268,6 +2282,9 @@ static jint _draw_raw_image(vg_drawing_t *drawing_data, draw_image_element targe
 					ret = error;
 				}
 				drawing_data->drawing_running |= raw_in_bvi_drawing_data.drawing_running;
+
+				// the clip may have been modified: restore the original one
+				p_current_scissor = _bvi_restore_scissor(p_original_scissor, p_current_scissor);
 			}
 
 			block = op->next;

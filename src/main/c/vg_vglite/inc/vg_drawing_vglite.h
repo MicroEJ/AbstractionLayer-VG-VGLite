@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -15,7 +15,7 @@ extern "C" {
  * These are implementations over VGLite and the destination buffer format is the
  * format specified in the VEE port.
  * @author MicroEJ Developer Team
- * @version 9.0.0
+ * @version 9.0.1
  * @see ui_drawing_vglite.h
  */
 
@@ -93,15 +93,6 @@ typedef jint (* VG_DRAWING_VGLITE_draw_image_element_t) (const vg_lite_path_t *p
                                                          vg_lite_color_t color,
                                                          vg_lite_linear_gradient_t *shared_gradient,
                                                          bool is_new_gradient);
-
-// --------------------------------------------------------------------------------
-// Global variables
-// --------------------------------------------------------------------------------
-
-/*
- * @brief Working variable used to render paths
- */
-extern vg_lite_path_t render_path;
 
 // --------------------------------------------------------------------------------
 // Public API
