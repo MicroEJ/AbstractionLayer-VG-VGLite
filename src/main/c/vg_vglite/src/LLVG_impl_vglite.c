@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022-2025 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2025 MicroEJ Corp.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroVG library low level API over VGLite.
  * @author MicroEJ Developer Team
- * @version 9.0.1
+ * @version 9.0.2
  */
 
 // -----------------------------------------------------------------------------
@@ -48,7 +48,9 @@
 void LLVG_IMPL_initialize(void) {
 	UI_VGLITE_initialize();
 	VG_HELPER_initialize();
+#if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE
 	VG_BVI_VGLITE_initialize();
+#endif
 }
 
 // -----------------------------------------------------------------------------

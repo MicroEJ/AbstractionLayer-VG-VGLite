@@ -13,7 +13,7 @@ This compoment is MicroEJ VG Pack dependent: it is compatible with one or severa
 
 Add the following line to your `module.ivy`:
 
-    <dependency org="com.microej.clibrary.llimpl" name="microvg-vglite" rev="9.0.1"/>
+    <dependency org="com.microej.clibrary.llimpl" name="microvg-vglite" rev="9.0.2"/>
 
 2. Follow the **Usage** chapters of each component part (see VEE Porting Guide > Vector Graphics > C Module)
 
@@ -46,5 +46,5 @@ The functions `LLVG_PAINTER_IMPL_drawPath` and `LLVG_PAINTER_IMPL_drawGradient` 
 None.
 
 ---
-_Copyright 2021-2024 MicroEJ Corp. All rights reserved._\
-_Use of this source code is governed by a BSD-style license that can be found with this software._  
+_Copyright 2021-2025 MicroEJ Corp._\
+_Use of this source code is governed by a BSD-style license that can be found with this software._

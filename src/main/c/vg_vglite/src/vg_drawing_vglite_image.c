@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022-2025 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2025 MicroEJ Corp.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -10,7 +10,7 @@
  * @brief MicroEJ MicroVG library low level API: image management. This file draws an
  * image and can fill a BufferedVectorImage.
  * @author MicroEJ Developer Team
- * @version 9.0.1
+ * @version 9.0.2
  */
 
 // -----------------------------------------------------------------------------
@@ -36,7 +36,6 @@
 
 #include "vg_lite.h"
 #include "vg_lite_kernel.h"
-#include "fsl_debug_console.h"
 
 #include "mej_math.h"
 
@@ -397,7 +396,7 @@ struct vg_block_bvi_image {
 	jchar alpha; // prevent to use the mask "& 0xff"
 
 	const vector_image_t *image;
-	jfloat matrix[9];
+	jfloat matrix[LLVG_MATRIX_SIZE];
 	int32_t scissor[4];
 	jfloat color_matrix[COLOR_MATRIX_SIZE];
 	jint elapsed_msb; // prevent unalignment access
@@ -635,8 +634,8 @@ extern uint32_t vg_lite_get_scissor(int32_t **scissor);
 // -----------------------------------------------------------------------------
 
 /*
- * @brief Gradient used for all drawings with gradient (only one image allocation, * does not alterate the original
- * gradient's matrix and colors, etc.).
+ * @brief Gradient used for all drawings with gradient (only one image allocation,
+ * does not alterate the original gradient's matrix and colors, etc.).
  */
 static vg_gradient render_gradient;
 
@@ -853,27 +852,23 @@ static uint8_t _filter_alpha(uint8_t alpha, const float color_matrix[]) {
 static uint32_t _prepare_render_color(uint32_t color, uint32_t alpha, const float color_matrix[]) {
 	uint32_t ret = color;
 	if (NULL != color_matrix) {
-		assert((uint32_t)0xff == alpha); // filter mode does not use global alpha (see MicroVG spec)
 		ret = _filter_color(color, color_matrix);
-	} else if (alpha != (uint32_t)0xff) {
-		ret = VG_HELPER_apply_alpha(color, alpha);
-	} else {
-		// nothing to change
+	}
+	if ((uint32_t)0xff != alpha) {
+		ret = VG_HELPER_apply_alpha(ret, alpha);
 	}
 	return ret;
 }
 
 static void _prepare_gradient_colors(vg_gradient *gradient, uint32_t alpha, const float color_matrix[]) {
 	if (NULL != color_matrix) {
-		assert((uint32_t)0xff == alpha); // filter mode does not use global alpha
 		_filter_gradient(gradient, color_matrix);
-	} else if (alpha != (uint32_t)0xff) {
+	}
+	if ((uint32_t)0xff != alpha) {
 		uint32_t *colors = (uint32_t *)gradient->colors;
 		for (int i = 0; i < gradient->count; i++) {
 			colors[i] = VG_HELPER_apply_alpha(colors[i], alpha);
 		}
-	} else {
-		// nothing to change
 	}
 }
 

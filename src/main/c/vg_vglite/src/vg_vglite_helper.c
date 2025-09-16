@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2024-2025 MicroEJ Corp. All rights reserved.
+ * Copyright 2024-2025 MicroEJ Corp.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief Definition of vg_vglite_helper.h functions.
  * @author MicroEJ Developer Team
- * @version 9.0.1
+ * @version 9.0.2
  */
 
 // -----------------------------------------------------------------------------
@@ -20,6 +20,7 @@
 
 #include <LLVG_MATRIX_impl.h>
 
+#include "vg_configuration.h"
 #include "vg_helper.h"
 #include "vg_vglite_helper.h"
 

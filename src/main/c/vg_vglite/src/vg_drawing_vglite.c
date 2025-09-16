@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2021-2025 MicroEJ Corp. All rights reserved.
+ * Copyright 2021-2025 MicroEJ Corp.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -17,7 +17,7 @@
  * MicroUI BufferedImage).
  *
  * @author MicroEJ Developer Team
- * @version 9.0.1
+ * @version 9.0.2
  */
 
 // -----------------------------------------------------------------------------
@@ -69,7 +69,7 @@ static inline DRAWING_Status _post_operation(MICROUI_GraphicsContext *gc, jint e
 		UI_VGLITE_start_operation(true);
 		ret = DRAWING_RUNNING;
 	} else {
-		// else: nothing has been drawn (empty drawing, out of clip, etc.): not an error
+		// else: nothing has been drawn (empty drawing, out of clip, etc.) or the drawing is already performed
 		ret = DRAWING_DONE;
 	}
 	if (DRAWING_RUNNING != ret) {

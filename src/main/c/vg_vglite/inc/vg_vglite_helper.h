@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2022-2025 MicroEJ Corp. All rights reserved.
+ * Copyright 2022-2025 MicroEJ Corp.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -13,7 +13,7 @@
  * @brief MicroVG library low level API. Provides helper defines and functions to
  * manipulates the VGLite objects.
  * @author MicroEJ Developer Team
- * @version 9.0.1
+ * @version 9.0.2
  */
 
 #if defined __cplusplus
