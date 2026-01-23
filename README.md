@@ -13,7 +13,7 @@ This compoment is MicroEJ VG Pack dependent: it is compatible with one or severa
 
 Add the following line to your `module.ivy`:
 
-    <dependency org="com.microej.clibrary.llimpl" name="microvg-vglite" rev="9.0.2"/>
+    <dependency org="com.microej.clibrary.llimpl" name="microvg-vglite" rev="10.0.0"/>
 
 2. Follow the **Usage** chapters of each component part (see VEE Porting Guide > Vector Graphics > C Module)
 
@@ -32,14 +32,6 @@ _All dependencies are retrieved transitively by MicroEJ Module Manager_.
 # Source
 
 N/A.
-
-# Error Codes
-
-The functions `LLVG_PAINTER_IMPL_drawPath` and `LLVG_PAINTER_IMPL_drawGradient` return an error code:
-
-* `0`: success, the drawing is processed by the GPU.
-* `-1`: VGLite library issue: the drawing is canceled.
-* `-2`: The gradient cannot be processed (too many colors or VGLite library issue): the drawing is canceled.
 
 # Restrictions
 

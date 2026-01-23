@@ -5,11 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0] - 2026-01-23
+
+### Changed
+
+- Fetch the dependency C Module MicroVG 8.0.0.
+- Move the C Module initialization in the function `VG_DRAWING_initialize()` (specification of  C Module MicroVG 8.0.0).
+
+### Fixed
+
+- Fix the memory leak when a feature is killed whereas a BufferedVectorImage, an external RAW image or a filtered image is opened.
+
+### Removed
+
+- Remove the file `LLVG_impl_vglite.c`.
+- Remove the traces "image" (moved in MicroVG library).
+
 ## [9.0.2] - 2025-09-16
 
 ### Changed
 
-- Fetch the dependency CCO MicroVG 7.0.2.
+- Fetch the dependency C Module MicroVG 7.0.2.
 
 ### Fixed
 
@@ -23,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Fetch the dependency CCO MicroVG 7.0.1.
+- Fetch the dependency C Module MicroVG 7.0.1.
 
 ### Fixed
 
@@ -50,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Fetch the dependency CCO MicroVG 6.0.1.
+- Fetch the dependency C Module MicroVG 6.0.1.
 
 ## [8.0.0] - 2024-07-19
 
@@ -62,9 +78,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change the signature of all drawing functions: remove the parameters `x` and `y` (not backward compatible).
 - Install the files in the `vg_vglite` directory.
 - Increase the dependencies:
-  - CCO MicroUI over VGlite 9.0.0.
-  - CCO MicroVG 6.0.0.
-  - CCO Freetype 3.0.0.
+  - C Module MicroUI over VGlite 9.0.0.
+  - C Module MicroVG 6.0.0.
+  - C Module Freetype 3.0.0.
 - Change the file structure:
   - Rename `bvi_vglite.h` to `vg_bvi_vglite.h`.
   - Rename `microvg_vglite_helper.h` to `vg_vglite_helper.h`.
@@ -111,8 +127,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make the CCO compatible with VG pack 1.5.0 and higher.
-- Make the CCO compatible with the UI Pack 14.0.0 (CCO MicroVG 5.0.0 and MicroUI-VGLite 8.0.0).
+- Make the C Module compatible with VG pack 1.5.0 and higher.
+- Make the C Module compatible with the UI Pack 14.0.0 (C Modules MicroVG 5.0.0 and MicroUI-VGLite 8.0.0).
 
 ### Fixed
 
@@ -125,7 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make the CCO compatible with VG pack 1.4.2 and higher.
+- Make the C Module compatible with VG pack 1.4.2 and higher.
 
 ### Fixed
 
@@ -156,8 +172,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make the CCO compatible with VG pack 1.4.0 and higher.
-- Make CCO compatible with the CCO `microui-vglite#7.0.0` (not backward compatible).
+- Make the C Module compatible with VG pack 1.4.0 and higher.
+- Make C Module compatible with the C Module `microui-vglite#7.0.0` (not backward compatible).
 
 ### Fixed
 
@@ -182,16 +198,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make the CCO compatible with UI pack 13.5.0 and higher.
-- Make the CCO compatible with VG pack 1.3.0 and higher.
+- Make the C Module compatible with UI pack 13.5.0 and higher.
+- Make the C Module compatible with VG pack 1.3.0 and higher.
 - Merge BufferedVectorImage and RAW formats.
 - Simplify the gradient modification according to the caller translation.
 
 ### Removed
 
 - Remove `LLVG_BVI_impl.c`: code is merged in `LLVG_RAW_impl.c`.
-- Remove (move) some utility functions to CCO MicroUI-VGLite.
-- Remove "draw String" native functions implementation (implemented in CCO MicroVG).
+- Remove (move) some utility functions to C Module MicroUI-VGLite.
+- Remove "draw String" native functions implementation (implemented in C Module MicroVG).
 
 ## [4.0.4] - 2023-03-15
 
@@ -232,7 +248,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make the CCO compatible with VG pack 1.2.0 and higher.
+- Make the C Module compatible with VG pack 1.2.0 and higher.
 - Reduce the gradient footprint in BufferedVectorImage.
 - Harmonize the use of `vg_drawer.h` functions (instead of `VG_DRAWER_drawer_t` functions) in BufferedVectorImage.
 - Use the VGLite API to initialize the VGLite paths.
@@ -247,13 +263,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix the dependency to the CCO Freetype.
+- Fix the dependency to the C Module Freetype.
 
 ## [3.0.1] - 2022-09-08
 
 ### Fixed
 
-- Fix the dependency to the CCO Freetype.
+- Fix the dependency to the C Module Freetype.
 
 ## [3.0.0] - 2022-09-02
 
@@ -265,11 +281,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make the CCO compatible with VG pack 1.1.0 and higher.
+- Make the C Module compatible with VG pack 1.1.0 and higher.
 - Manage the closed fonts.
-- Configure freetype CCO from `microvg_configuration.h` header file.
-- Move `ftvglite.c` and `ftvglite.h` to freetype CCO.
-- Extract text layout to microvg CCO.
+- Configure freetype C Module from `microvg_configuration.h` header file.
+- Move `ftvglite.c` and `ftvglite.h` to freetype C Module.
+- Extract text layout to microvg C Module.
 - Get fill rule configuration from each glyph `FT_Outline->flags` instead of defaulting it to `VG_LITE_FILL_EVEN_ODD`.
 - Use the MicroUI over VGLite's Vectorial Drawer mechanism.
 - Join character bboxes at baseline for drawStringOnCircle.
@@ -288,11 +304,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- CCO creation.
+- C Module creation.
 - Initial revision based on `com.microej.clibrary.llimpl#vector-font-vglite#1.0.0`.
 - Add UTF16 characters parsing in `LLVG_FONT_PAINTER_IMPL_draw_string()` and `LLVG_FONT_PAINTER_IMPL_draw_string_on_circle()`.
 - Add support of multilayers glyphs, colored emoji.
 
 ---
-_Copyright 2021-2025 MicroEJ Corp._\
+_Copyright 2021-2026 MicroEJ Corp._\
 _Use of this source code is governed by a BSD-style license that can be found with this software._

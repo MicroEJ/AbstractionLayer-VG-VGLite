@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2021-2025 MicroEJ Corp.
+ * Copyright 2021-2026 MicroEJ Corp.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -17,18 +17,19 @@
  * MicroUI BufferedImage).
  *
  * @author MicroEJ Developer Team
- * @version 9.0.2
+ * @version 10.0.0
  */
 
 // -----------------------------------------------------------------------------
 // Includes
 // -----------------------------------------------------------------------------
 
+#include "vg_drawing_vglite.h"
 #include "ui_vglite.h"
 #include "vg_path.h"
-#include "vg_drawing_vglite.h"
 #include "vg_helper.h"
 #include "vg_vglite_helper.h"
+#include "vg_bvi_vglite.h"
 
 // -----------------------------------------------------------------------------
 // Defines
@@ -272,6 +273,11 @@ static DRAWING_Status _draw_string_on_circle_gradient(MICROUI_GraphicsContext *g
 
 // See the header file for the function documentation
 void VG_DRAWING_initialize(void) {
+	UI_VGLITE_initialize();
+#if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE && (VG_FEATURE_BUFFERED_VECTOR_IMAGE == 1)
+	VG_BVI_VGLITE_initialize();
+#endif
+
 	vg_lite_init_path(
 		&render_path,
 		(vg_lite_format_t)VG_PATH_get_path_encoder_format(),     // default value
