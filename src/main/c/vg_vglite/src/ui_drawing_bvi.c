@@ -18,7 +18,7 @@
  * drawing function is specified by ui_drawing_bvi.c to target BufferedVectorImage buffer.
  *
  * @author MicroEJ Developer Team
- * @version 10.0.0
+ * @version 10.0.1
  * @see ui_drawing_vglite.c
  */
 

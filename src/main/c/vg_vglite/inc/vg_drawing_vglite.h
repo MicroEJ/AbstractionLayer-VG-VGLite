@@ -15,7 +15,7 @@ extern "C" {
  * These are implementations over VGLite and the destination buffer format is the
  * format specified in the VEE port.
  * @author MicroEJ Developer Team
- * @version 10.0.0
+ * @version 10.0.1
  * @see ui_drawing_vglite.h
  */
 

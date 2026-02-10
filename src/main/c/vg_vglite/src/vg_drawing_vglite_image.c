@@ -10,7 +10,7 @@
  * @brief MicroEJ MicroVG library low level API: image management. This file draws an
  * image and can fill a BufferedVectorImage.
  * @author MicroEJ Developer Team
- * @version 10.0.0
+ * @version 10.0.1
  */
 
 // -----------------------------------------------------------------------------
@@ -1824,12 +1824,13 @@ static const int32_t * _bvi_restore_scissor(const int32_t *original_scissor, con
 	return original_scissor;
 }
 
-static vg_block_t * _bvi_clear_blocks(vector_buffered_image_t *image) {
+static void _bvi_clear_blocks(vector_buffered_image_t *image) {
 	vg_block_t *block = image->header.first_block;
 	while (VG_BLOCK_LAST != block->kind) {
 		block = _bvi_free_block(block);
 	}
-	return block;
+	image->header.first_block = block; // reset first block
+	image->latest_data = NULL; // reset to identify the very first block
 }
 
 /*
@@ -2406,8 +2407,8 @@ static void _free_registered_image_in_heap(void *resource) {
 	// ensure GPU is not working in our image...
 	LLUI_DISPLAY_waitAsynchronousDrawingEnd();
 	// ... and close it
-	// cppcheck-suppress [misra-c2012-11.5] cast the resource in a MICROVG_Image
-	LLUI_DISPLAY_IMPL_imageHeapFree((uint8_t *)((MICROVG_Image *)resource)->data);
+	// cppcheck-suppress [misra-c2012-11.5] cast the resource in a memory address
+	LLUI_DISPLAY_IMPL_imageHeapFree((uint8_t *)resource);
 }
 
 static void _register_filtered_image_description(void *resource, char *buffer, uint32_t bufferLength) {
@@ -2556,8 +2557,10 @@ static jint _load_external_image(RES_ID resource_id, MICROVG_Image *microvg_imag
 		resource->size = size;
 		*extra_flags |= FLAG_TYPE_HEAP;
 		_tag_image_in_ram((vector_image_t *)destination);
-		SNI_registerResource((void *)microvg_image, (SNI_closeFunction) & _free_registered_image_in_heap,
-		                     _register_external_image_description);
+		int32_t registered = SNI_registerResource((void *)destination,
+		                                          (SNI_closeFunction) & _free_registered_image_in_heap,
+		                                          _register_external_image_description);
+		assert(SNI_OK == registered);
 	} else {
 		// error during reading: free the heap (keep "result" as error code)
 		LLUI_DISPLAY_IMPL_imageHeapFree(destination);
@@ -2665,7 +2668,7 @@ static void _free_registered_buffered_image(void *resource) {
 	// ensure GPU is not working in our image...
 	LLUI_DISPLAY_waitAsynchronousDrawingEnd();
 	// ... and close it
-	(void)_bvi_clear_blocks((vector_buffered_image_t *)((MICROVG_Image *)resource)->data);
+	_bvi_clear_blocks((vector_buffered_image_t *)resource);
 }
 
 static void _register_buffered_image_description(void *resource, char *buffer, uint32_t bufferLength) {
@@ -2708,7 +2711,7 @@ void VG_BVI_VGLITE_initialize_new_image(MICROUI_Image *image) {
 }
 
 void VG_BVI_VGLITE_free_resources(MICROUI_Image *image) {
-	(void)_bvi_clear_blocks(MAP_BVI_ON_IMAGE(image));
+	_bvi_clear_blocks(MAP_BVI_ON_IMAGE(image));
 }
 
 jint VG_BVI_VGLITE_add_draw_path(
@@ -2824,18 +2827,15 @@ void LLVG_BVI_IMPL_map_context(MICROUI_Image *ui, MICROVG_Image *vg) {
 	vg->height = (float)ui->height;
 	vg->flags = FLAG_TYPE_BUFFERED;
 
-	(void)SNI_registerResource((void *)vg, (SNI_closeFunction) & _free_registered_buffered_image,
-	                           &_register_buffered_image_description);
+	int32_t registered = SNI_registerResource((void *)vg->data, (SNI_closeFunction) & _free_registered_buffered_image,
+	                                          &_register_buffered_image_description);
+	assert(SNI_OK == registered);
 }
 
 void LLVG_BVI_IMPL_clear(MICROUI_GraphicsContext *gc) {
 	if (LLUI_DISPLAY_requestDrawing(gc, (SNI_callback) & LLVG_BVI_IMPL_clear)) {
 		// map a struct on graphics context's pixel area
-		vector_buffered_image_t *image = MAP_BVI_ON_GC(gc);
-
-		image->header.first_block = _bvi_clear_blocks(image); // reset first block
-		image->latest_data = NULL; // reset to identify the very first block
-
+		_bvi_clear_blocks(MAP_BVI_ON_GC(gc));
 		LLUI_DISPLAY_setDrawingStatus(DRAWING_DONE);
 	}
 }
@@ -2907,8 +2907,10 @@ jint Java_ej_microvg_VectorGraphicsNatives_createImage(MICROVG_Image *source, MI
 		_get_image_parameters(image, &drawing_data);
 		_derive_raw_image(&drawing_data, color_matrix);
 
-		(void)SNI_registerResource((void *)dest, (SNI_closeFunction) & _free_registered_image_in_heap,
-		                           &_register_filtered_image_description);
+		int32_t registered = SNI_registerResource((void *)dest->data,
+		                                          (SNI_closeFunction) & _free_registered_image_in_heap,
+		                                          &_register_filtered_image_description);
+		assert(SNI_OK == registered);
 
 		ret = LLVG_SUCCESS;
 	} else {
@@ -2928,19 +2930,27 @@ void Java_ej_microvg_VectorGraphicsNatives_closeImage(MICROVG_Image *res) {
 			break;
 
 		case FLAG_TYPE_HEAP:
+		{
 			// have to unregister and remove the image from the image heap
-			SNI_unregisterResource((void *)res, (SNI_closeFunction) & _free_registered_image_in_heap);
+			int32_t unregistered = SNI_unregisterResource((void *)res->data,
+			                                              (SNI_closeFunction) & _free_registered_image_in_heap);
+			assert(SNI_OK == unregistered);
 			// cppcheck-suppress [misra-c2012-11.5] cast the resource in a u8 address
 			LLUI_DISPLAY_IMPL_imageHeapFree((uint8_t *)res->data);
 			break;
+		}
 
 #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE && (VG_FEATURE_BUFFERED_VECTOR_IMAGE == 1)
 		case FLAG_TYPE_BUFFERED:
+		{
 			// have to unregister and clear the linked list (also done in VG_BVI_NEMA_free_resources() via bi.close())
-			SNI_unregisterResource((void *)res, (SNI_closeFunction) & _free_registered_buffered_image);
+			int32_t unregistered = SNI_unregisterResource((void *)res->data,
+			                                              (SNI_closeFunction) & _free_registered_buffered_image);
+			assert(SNI_OK == unregistered);
 			// cppcheck-suppress [misra-c2012-11.5] cast the resource in a vector_buffered_image_t
-			(void)_bvi_clear_blocks((vector_buffered_image_t *)res->data);
+			_bvi_clear_blocks((vector_buffered_image_t *)res->data);
 			break;
+		}
 #endif // #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE && (VG_FEATURE_BUFFERED_VECTOR_IMAGE == 1)
 		}
 

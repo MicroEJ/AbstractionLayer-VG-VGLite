@@ -10,7 +10,7 @@
  * @brief Implementation of vg_path.h functions
  *
  * @author MicroEJ Developer Team
- * @version 10.0.0
+ * @version 10.0.1
  */
 
 // -----------------------------------------------------------------------------

@@ -17,7 +17,7 @@
  * MicroUI BufferedImage).
  *
  * @author MicroEJ Developer Team
- * @version 10.0.0
+ * @version 10.0.1
  */
 
 // -----------------------------------------------------------------------------
