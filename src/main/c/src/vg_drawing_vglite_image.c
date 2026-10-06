@@ -3,6 +3,8 @@
  *
  * Copyright 2022-2026 MicroEJ Corp.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
+ *
+ * Build: 7E4D1F7C
  */
 
 /**
@@ -10,7 +12,7 @@
  * @brief MicroEJ MicroVG library low level API: image management. This file draws an
  * image and can fill a BufferedVectorImage.
  * @author MicroEJ Developer Team
- * @version 10.0.1
+ * @version 10.0.3
  */
 
 // -----------------------------------------------------------------------------
@@ -37,6 +39,8 @@
 #include "vg_lite_kernel.h"
 
 #include "mej_math.h"
+
+VG_LOG_DECLARE_MODULE()
 
 // -----------------------------------------------------------------------------
 // Macros and Defines
@@ -735,11 +739,11 @@ static inline uint8_t * _alloc_data(uint32_t size) {
 
 	uint8_t *ret = MALLOC(size);
 	if (NULL == ret) {
-		MEJ_LOG_ERROR_MICROVG("OOM\n");
+		VG_LOG_ERROR("MicroUI images heap: cannot allocate %u bytes", (unsigned int)size);
 	}
 
 #ifdef DEBUG_ALLOCATOR
-	MEJ_LOG_INFO_MICROVG("alloc %u\t0x%x\t(%u/%u)\n", size, ret, cumul, max);
+	VG_LOG_INFO("alloc %u\t0x%x\t(%u/%u)", size, ret, cumul, max);
 	*((uint32_t *)ret) = size;
 	ret += 4u;
 #endif
@@ -2290,7 +2294,7 @@ static jint _draw_raw_image(vg_drawing_t *drawing_data, draw_image_element targe
 #endif // #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE && (VG_FEATURE_BUFFERED_VECTOR_IMAGE == 1)
 
 		default:
-			MEJ_LOG_ERROR_MICROVG("unknown operation: %d\n", block->kind);
+			VG_LOG_ERROR("unknown operation: %d", block->kind);
 			ret = LLVG_DATA_INVALID;
 			done = true;
 			break;
@@ -2392,7 +2396,7 @@ static void _derive_raw_image(vg_drawing_t *drawing_data, const float color_matr
 #endif // #if defined VG_FEATURE_BUFFERED_VECTOR_IMAGE && (VG_FEATURE_BUFFERED_VECTOR_IMAGE == 1)
 
 		default:
-			MEJ_LOG_ERROR_MICROVG("unknown operation: %d\n", block->kind);
+			VG_LOG_ERROR("unknown operation: %d", block->kind);
 			done = true;
 			break;
 		}

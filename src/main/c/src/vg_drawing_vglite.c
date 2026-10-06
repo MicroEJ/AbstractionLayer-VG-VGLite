@@ -3,6 +3,8 @@
  *
  * Copyright 2021-2026 MicroEJ Corp.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
+ *
+ * Build: 7E4D1F7C
  */
 
 /**
@@ -17,7 +19,7 @@
  * MicroUI BufferedImage).
  *
  * @author MicroEJ Developer Team
- * @version 10.0.1
+ * @version 10.0.3
  */
 
 // -----------------------------------------------------------------------------
@@ -30,6 +32,8 @@
 #include "vg_helper.h"
 #include "vg_vglite_helper.h"
 #include "vg_bvi_vglite.h"
+
+VG_LOG_DECLARE_MODULE()
 
 // -----------------------------------------------------------------------------
 // Defines
@@ -129,6 +133,7 @@ static void _update_gradient(vg_lite_linear_gradient_t *gradient, vg_lite_blend_
 	(void)vg_lite_update_grad(gradient); // always success
 }
 
+// traces the out-of-memory case before converting it
 static inline jint _convert_vglite_error_to_llvg_error(vg_lite_error_t vg_lite_error) {
 	jint ret;
 	switch (vg_lite_error) {
@@ -137,6 +142,7 @@ static inline jint _convert_vglite_error_to_llvg_error(vg_lite_error_t vg_lite_e
 		break;
 
 	case VG_LITE_OUT_OF_MEMORY:
+		VG_LOG_ERROR("VGLite command buffer: out of memory");
 		ret = LLVG_OUT_OF_MEMORY;
 		break;
 

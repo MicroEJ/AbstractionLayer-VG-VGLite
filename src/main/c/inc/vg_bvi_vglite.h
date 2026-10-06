@@ -5,13 +5,13 @@
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
-/*
+/**
  * @file
  * @brief Provides some functions to draw VGLite elements on a BufferedVectorImage
  * (in VGLite internal format).
  *
  * @author MicroEJ Developer Team
- * @version 10.0.1
+ * @version 10.0.3
  */
 
 #if !defined VG_BVI_VGLITE_H
@@ -36,7 +36,7 @@ extern "C" {
 // Public API
 // --------------------------------------------------------------------------------
 
-/*
+/**
  * @brief Initializes the engine that implements the MicroVG BufferedVectorImage feature
  * over the VGLite GPU.
  */

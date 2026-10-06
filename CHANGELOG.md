@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.3] - 2026-10-06
+
+### Changed
+
+- Complete the Doxygen documentation of the headers, and align the README with the other MicroEJ Abstraction Layers.
+- Log through the log macros of the MicroVG Abstraction Layer 8.0.3, without an empty line after each log.
+- Update the MicroVG Abstraction Layer dependency to 8.0.3.
+- Move the sources to `src/main/c/inc` and `src/main/c/src`: a VEE Port that uses this repository as a git submodule updates its include paths and its source list.
+
+### Fixed
+
+- Name the memory area that ran out, the MicroUI images heap or the VGLite command buffer.
+
+## [10.0.2] - 2026-09-15
+
+### Removed
+
+- Remove the dependency on the MicroUI VGLite Abstraction Layer (`microui-vglite`); the VEE Port must declare it explicitly.
+
 ## [10.0.1] - 2026-02-10
 
 ### Fixed
@@ -16,8 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Fetch the dependency C Module MicroVG 8.0.0.
-- Move the C Module initialization in the function `VG_DRAWING_initialize()` (specification of  C Module MicroVG 8.0.0).
+- Fetch the dependency MicroVG Abstraction Layer 8.0.0.
+- Move the Abstraction Layer initialization in the function `VG_DRAWING_initialize()` (specification of  MicroVG Abstraction Layer 8.0.0).
 
 ### Fixed
 
@@ -32,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Fetch the dependency C Module MicroVG 7.0.2.
+- Fetch the dependency MicroVG Abstraction Layer 7.0.2.
 
 ### Fixed
 
@@ -46,7 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Fetch the dependency C Module MicroVG 7.0.1.
+- Fetch the dependency MicroVG Abstraction Layer 7.0.1.
 
 ### Fixed
 
@@ -59,7 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Remove useless and invalid external field declaration.
-- Remove dependency to a specific version of Freetype: the C module Freetype must be fetched independently.
+- Remove dependency to a specific version of Freetype: the Freetype Abstraction Layer must be fetched independently.
 
 ## [9.0.0] - 2024-10-09
 
@@ -73,7 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Fetch the dependency C Module MicroVG 6.0.1.
+- Fetch the dependency MicroVG Abstraction Layer 6.0.1.
 
 ## [8.0.0] - 2024-07-19
 
@@ -85,9 +104,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change the signature of all drawing functions: remove the parameters `x` and `y` (not backward compatible).
 - Install the files in the `vg_vglite` directory.
 - Increase the dependencies:
-  - C Module MicroUI over VGlite 9.0.0.
-  - C Module MicroVG 6.0.0.
-  - C Module Freetype 3.0.0.
+  - MicroUI over VGlite Abstraction Layer 9.0.0.
+  - MicroVG Abstraction Layer 6.0.0.
+  - Freetype Abstraction Layer 3.0.0.
 - Change the file structure:
   - Rename `bvi_vglite.h` to `vg_bvi_vglite.h`.
   - Rename `microvg_vglite_helper.h` to `vg_vglite_helper.h`.
@@ -134,8 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make the C Module compatible with VG pack 1.5.0 and higher.
-- Make the C Module compatible with the UI Pack 14.0.0 (C Modules MicroVG 5.0.0 and MicroUI-VGLite 8.0.0).
+- Make the Abstraction Layer compatible with VG pack 1.5.0 and higher.
+- Make the Abstraction Layer compatible with the UI Pack 14.0.0 (Abstraction Layers MicroVG 5.0.0 and MicroUI-VGLite 8.0.0).
 
 ### Fixed
 
@@ -148,7 +167,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make the C Module compatible with VG pack 1.4.2 and higher.
+- Make the Abstraction Layer compatible with VG pack 1.4.2 and higher.
 
 ### Fixed
 
@@ -179,8 +198,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make the C Module compatible with VG pack 1.4.0 and higher.
-- Make C Module compatible with the C Module `microui-vglite#7.0.0` (not backward compatible).
+- Make the Abstraction Layer compatible with VG pack 1.4.0 and higher.
+- Make the Abstraction Layer compatible with the Abstraction Layer `microui-vglite#7.0.0` (not backward compatible).
 
 ### Fixed
 
@@ -205,16 +224,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make the C Module compatible with UI pack 13.5.0 and higher.
-- Make the C Module compatible with VG pack 1.3.0 and higher.
+- Make the Abstraction Layer compatible with UI pack 13.5.0 and higher.
+- Make the Abstraction Layer compatible with VG pack 1.3.0 and higher.
 - Merge BufferedVectorImage and RAW formats.
 - Simplify the gradient modification according to the caller translation.
 
 ### Removed
 
 - Remove `LLVG_BVI_impl.c`: code is merged in `LLVG_RAW_impl.c`.
-- Remove (move) some utility functions to C Module MicroUI-VGLite.
-- Remove "draw String" native functions implementation (implemented in C Module MicroVG).
+- Remove (move) some utility functions to MicroUI Abstraction Layer-VGLite.
+- Remove "draw String" native functions implementation (implemented in MicroVG Abstraction Layer).
 
 ## [4.0.4] - 2023-03-15
 
@@ -255,7 +274,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make the C Module compatible with VG pack 1.2.0 and higher.
+- Make the Abstraction Layer compatible with VG pack 1.2.0 and higher.
 - Reduce the gradient footprint in BufferedVectorImage.
 - Harmonize the use of `vg_drawer.h` functions (instead of `VG_DRAWER_drawer_t` functions) in BufferedVectorImage.
 - Use the VGLite API to initialize the VGLite paths.
@@ -270,13 +289,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix the dependency to the C Module Freetype.
+- Fix the dependency to the Freetype Abstraction Layer.
 
 ## [3.0.1] - 2022-09-08
 
 ### Fixed
 
-- Fix the dependency to the C Module Freetype.
+- Fix the dependency to the Freetype Abstraction Layer.
 
 ## [3.0.0] - 2022-09-02
 
@@ -288,11 +307,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make the C Module compatible with VG pack 1.1.0 and higher.
+- Make the Abstraction Layer compatible with VG pack 1.1.0 and higher.
 - Manage the closed fonts.
-- Configure freetype C Module from `microvg_configuration.h` header file.
-- Move `ftvglite.c` and `ftvglite.h` to freetype C Module.
-- Extract text layout to microvg C Module.
+- Configure freetype Abstraction Layer from `microvg_configuration.h` header file.
+- Move `ftvglite.c` and `ftvglite.h` to freetype Abstraction Layer.
+- Extract text layout to microvg Abstraction Layer.
 - Get fill rule configuration from each glyph `FT_Outline->flags` instead of defaulting it to `VG_LITE_FILL_EVEN_ODD`.
 - Use the MicroUI over VGLite's Vectorial Drawer mechanism.
 - Join character bboxes at baseline for drawStringOnCircle.
@@ -311,11 +330,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- C Module creation.
+- Abstraction Layer creation.
 - Initial revision based on `com.microej.clibrary.llimpl#vector-font-vglite#1.0.0`.
 - Add UTF16 characters parsing in `LLVG_FONT_PAINTER_IMPL_draw_string()` and `LLVG_FONT_PAINTER_IMPL_draw_string_on_circle()`.
 - Add support of multilayers glyphs, colored emoji.
 
 ---
 _Copyright 2021-2026 MicroEJ Corp._\
-_Use of this source code is governed by a BSD-style license that can be found with this software._
+_Use of this source code is governed by a BSD-style license that can be found with this software._\
+_Build: 7E4D1F7C_

@@ -9,13 +9,13 @@
 extern "C" {
 #endif
 
-/*
+/**
  * @file
  * @brief Implementation of a set of vg_drawing.h drawing functions (library MicroVG).
  * These are implementations over VGLite and the destination buffer format is the
  * format specified in the VEE port.
  * @author MicroEJ Developer Team
- * @version 10.0.1
+ * @version 10.0.3
  * @see ui_drawing_vglite.h
  */
 
@@ -75,7 +75,7 @@ extern "C" {
 // Typedef
 // --------------------------------------------------------------------------------
 
-/*
+/**
  * @brief Function to draw an image element. An image element is a vectorial path
  * and the function parameters are similar to vg_lite_draw() and vg_lite_draw_gradient().
  *
@@ -112,15 +112,15 @@ vg_lite_error_t VG_DRAWING_VGLITE_prepare_gradient(vg_lite_linear_gradient_t *vg
                                                    const jint *gradient_data, const jfloat *gradient_matrix,
                                                    const jfloat *global_matrix, int alpha);
 
-/*
+/**
  * @brief Clears the VGLite gradient data: vg_lite_init_grad() allocates a buffer
  * in VGLite buffer, this function frees it.
  *
- * @param[in] gradient the VGLite gradient to clear
+ * @param[in,out] gradient the VGLite gradient to clear
  */
 void VG_DRAWING_VGLITE_clear_gradient(vg_lite_linear_gradient_t *gradient);
 
-/*
+/**
  * @brief Converts a MicroVG path in a VGLite path. The same VGLite path is returned, by
  * consequence only one path can be converted at any time.
  *
@@ -130,16 +130,16 @@ void VG_DRAWING_VGLITE_clear_gradient(vg_lite_linear_gradient_t *gradient);
  */
 vg_lite_path_t * VG_DRAWING_VGLITE_to_vglite_path(VG_PATH_HEADER_t *path);
 
-/*
+/**
  * @brief Generic function to prepare the drawing of an image. The implementation does
  * not draw, it calls the drawer function for each image element.
  *
  * @param[in] drawer the function to draw an image element.
- * @param[in] image the destination.
- * @param[in] matrix the transformation matrix to apply
+ * @param[in] image the vector image to draw.
+ * @param[in] drawing_matrix the transformation matrix to apply
  * @param[in] alpha the global opacity rendering value
- * @param[in] elapsedTime the elapsed time since the beginning of the animation, in milliseconds
- * @param[in] colorMatrix the color matrix used to transform colors, may be null (means no color deformation)
+ * @param[in] elapsed the elapsed time since the beginning of the animation, in milliseconds
+ * @param[in] color_matrix the color matrix used to transform colors, may be null (means no color deformation)
  * @param[out] rendered true if something has been drawn
  *
  * @return LLVG_SUCCESS on a success, a different value otherwise
